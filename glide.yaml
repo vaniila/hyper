@@ -1,0 +1,9 @@
+package: github.com/samuelngs/hyper
+import:
+- package: github.com/gorilla/websocket
+  version: ~1.0.0
+- package: github.com/pressly/chi
+  version: ~1.0.0
+- package: github.com/ua-parser/uap-go
+  subpackages:
+  - uaparser
