@@ -24,9 +24,12 @@ type Context interface {
 	Cache() Cache
 	Cookie() Cookie
 	Header() Header
-	Param() Value
-	Query() Value
-	Body() Value
+	MustParam(s string) Value
+	MustQuery(s string) Value
+	MustBody(s string) Value
+	Param(s string) (error, Value)
+	Query(s string) (error, Value)
+	Body(s string) (error, Value)
 	File(s string) []byte
 	Tracer() tracer.Tracer
 	Abort()
@@ -44,6 +47,8 @@ type Cache interface {
 
 // Value interface
 type Value interface {
+	Key() string
+	Val() []byte
 	String() string
 }
 

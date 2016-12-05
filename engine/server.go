@@ -22,9 +22,8 @@ type server struct {
 	ln       *net.Listener
 }
 
-func (v *server) handler(conf router.Config) func(http.ResponseWriter, *http.Request) {
+func (v *server) handler(conf router.RouteConfig) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		defer r.Context()
 		client := &Client{
 			req:      r,
 			uaparser: v.uaparser,
@@ -36,7 +35,33 @@ func (v *server) handler(conf router.Config) func(http.ResponseWriter, *http.Req
 			req:       r,
 			res:       w,
 			client:    client,
+			values:    make([]router.Value, 0),
+			params:    conf.Params(),
 			uaparser:  v.uaparser,
+		}
+		for _, pa := range conf.Params() {
+			conf := pa.Config()
+			data := &Value{
+				typ: conf.Type(),
+				key: conf.Name(),
+			}
+			switch conf.Type() {
+			case router.ParamBody:
+				data.val = []byte(r.FormValue(conf.Name()))
+			case router.ParamParam:
+				data.val = []byte(chi.URLParam(r.Context(), conf.Name()))
+			case router.ParamQuery:
+				data.val = []byte(r.URL.Query().Get(conf.Name()))
+			case router.ParamHeader:
+				data.val = []byte(r.Header.Get(conf.Name()))
+			case router.ParamCookie:
+				if cookie, err := r.Cookie(conf.Name()); err != nil {
+					data.val = make([]byte, 0)
+				} else {
+					data.val = []byte(cookie.Value)
+				}
+			}
+			c.values = append(c.values, data)
 		}
 		for _, md := range conf.Middlewares() {
 			if !c.IsAborted() {
@@ -50,7 +75,7 @@ func (v *server) handler(conf router.Config) func(http.ResponseWriter, *http.Req
 	}
 }
 
-func (v *server) buildRoutes(mux *chi.Mux, routes []router.Router) {
+func (v *server) buildRoutes(mux *chi.Mux, routes []router.Route) {
 	for _, route := range routes {
 		switch conf := route.Config(); {
 		case conf.Namespace():

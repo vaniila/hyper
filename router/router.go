@@ -4,43 +4,43 @@ package router
 type Service interface {
 	Start() error
 	Stop() error
-	Get(string) Router
-	Head(string) Router
-	Options(string) Router
-	Post(string) Router
-	Put(string) Router
-	Patch(string) Router
-	Delete(string) Router
-	Namespace(string) Router
-	Routes() []Router
+	Get(string) Route
+	Head(string) Route
+	Options(string) Route
+	Post(string) Route
+	Put(string) Route
+	Patch(string) Route
+	Delete(string) Route
+	Namespace(string) Route
+	Routes() []Route
 	String() string
 }
 
-// Router interface
-type Router interface {
-	Get(string) Router
-	Head(string) Router
-	Options(string) Router
-	Post(string) Router
-	Put(string) Router
-	Patch(string) Router
-	Delete(string) Router
-	Namespace(string) Router
-	Alias(...string) Router
-	Name(string) Router
-	Summary(string) Router
-	Doc(string) Router
-	Params(...Param) Router
-	Handle(HandlerFunc) Router
-	Middleware(...HandlerFunc) Router
-	Websocket(bool) Router
-	HTTP(bool) Router
-	Models(...Model) Router
-	Config() Config
+// Route interface
+type Route interface {
+	Get(string) Route
+	Head(string) Route
+	Options(string) Route
+	Post(string) Route
+	Put(string) Route
+	Patch(string) Route
+	Delete(string) Route
+	Namespace(string) Route
+	Alias(...string) Route
+	Name(string) Route
+	Summary(string) Route
+	Doc(string) Route
+	Params(...Param) Route
+	Handle(HandlerFunc) Route
+	Middleware(...HandlerFunc) Route
+	Websocket(bool) Route
+	HTTP(bool) Route
+	Models(...Model) Route
+	Config() RouteConfig
 }
 
-// Config interface
-type Config interface {
+// RouteConfig interface
+type RouteConfig interface {
 	Pattern() string
 	Aliases() []string
 	Method() string
@@ -51,7 +51,7 @@ type Config interface {
 	Websocket() bool
 	HTTP() bool
 	Params() []Param
-	Routes() []Router
+	Routes() []Route
 	Handler() HandlerFunc
 	Middlewares() HandlerFuncs
 	Model(int) interface{}
@@ -64,6 +64,18 @@ type Param interface {
 	Doc(string) Param
 	Default([]byte) Param
 	Require(bool) Param
+	Config() ParamConfig
+}
+
+// ParamConfig interface
+type ParamConfig interface {
+	Name() string
+	Type() ParamType
+	Format() DataFormat
+	Summary() string
+	Doc() string
+	Default() []byte
+	Require() bool
 }
 
 // Model interface
@@ -77,7 +89,7 @@ func New(opts ...Option) Service {
 	o := newOptions(opts...)
 	s := &server{
 		id:     o.ID,
-		routes: make([]Router, 0),
+		routes: make([]Route, 0),
 	}
 	return s
 }

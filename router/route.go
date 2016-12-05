@@ -7,7 +7,7 @@ type router struct {
 	aliases       []string
 	name          string
 	method        string
-	routes        []Router
+	routes        []Route
 	namespace     bool
 	ws            bool
 	http          bool
@@ -25,7 +25,7 @@ type model struct {
 	structure interface{}
 }
 
-func (v *router) add(pat, method string) Router {
+func (v *router) add(pat, method string) Route {
 	r := &router{
 		pat:    pat,
 		method: method,
@@ -36,35 +36,35 @@ func (v *router) add(pat, method string) Router {
 	return r
 }
 
-func (v *router) Get(pat string) Router {
+func (v *router) Get(pat string) Route {
 	return v.add(pat, "GET")
 }
 
-func (v *router) Head(pat string) Router {
+func (v *router) Head(pat string) Route {
 	return v.add(pat, "HEAD")
 }
 
-func (v *router) Options(pat string) Router {
+func (v *router) Options(pat string) Route {
 	return v.add(pat, "OPTIONS")
 }
 
-func (v *router) Post(pat string) Router {
+func (v *router) Post(pat string) Route {
 	return v.add(pat, "POST")
 }
 
-func (v *router) Put(pat string) Router {
+func (v *router) Put(pat string) Route {
 	return v.add(pat, "PUT")
 }
 
-func (v *router) Patch(pat string) Router {
+func (v *router) Patch(pat string) Route {
 	return v.add(pat, "PATCH")
 }
 
-func (v *router) Delete(pat string) Router {
+func (v *router) Delete(pat string) Route {
 	return v.add(pat, "DELETE")
 }
 
-func (v *router) Namespace(pat string) Router {
+func (v *router) Namespace(pat string) Route {
 	if !v.namespace {
 		log.Fatalf("Route %s is not a namespace, you are only allowed to attach route(s) to namespaces.", v.pat)
 	}
@@ -76,29 +76,29 @@ func (v *router) Namespace(pat string) Router {
 	return r
 }
 
-func (v *router) Alias(aliases ...string) Router {
+func (v *router) Alias(aliases ...string) Route {
 	for _, alias := range aliases {
 		v.aliases = append(v.aliases, alias)
 	}
 	return v
 }
 
-func (v *router) Name(s string) Router {
+func (v *router) Name(s string) Route {
 	v.name = s
 	return v
 }
 
-func (v *router) Summary(s string) Router {
+func (v *router) Summary(s string) Route {
 	v.summary = s
 	return v
 }
 
-func (v *router) Doc(s string) Router {
+func (v *router) Doc(s string) Route {
 	v.documentation = s
 	return v
 }
 
-func (v *router) Params(ps ...Param) Router {
+func (v *router) Params(ps ...Param) Route {
 	for _, param := range ps {
 		if param != nil {
 			v.params = append(v.params, param)
@@ -107,7 +107,7 @@ func (v *router) Params(ps ...Param) Router {
 	return v
 }
 
-func (v *router) Handle(f HandlerFunc) Router {
+func (v *router) Handle(f HandlerFunc) Route {
 	if v.handler != nil {
 		log.Fatalf("Route %s can only have one handler", v.pat)
 	}
@@ -115,7 +115,7 @@ func (v *router) Handle(f HandlerFunc) Router {
 	return v
 }
 
-func (v *router) Middleware(fs ...HandlerFunc) Router {
+func (v *router) Middleware(fs ...HandlerFunc) Route {
 	for _, f := range fs {
 		if f != nil {
 			v.middleware = append(v.middleware, f)
@@ -124,21 +124,21 @@ func (v *router) Middleware(fs ...HandlerFunc) Router {
 	return v
 }
 
-func (v *router) Websocket(b bool) Router {
+func (v *router) Websocket(b bool) Route {
 	v.ws = b
 	return v
 }
 
-func (v *router) HTTP(b bool) Router {
+func (v *router) HTTP(b bool) Route {
 	v.http = b
 	return v
 }
 
-func (v *router) Models(ms ...Model) Router {
+func (v *router) Models(ms ...Model) Route {
 	return v
 }
 
-func (v *router) Config() Config {
+func (v *router) Config() RouteConfig {
 	return &config{
 		pat:           v.pat,
 		aliases:       v.aliases,

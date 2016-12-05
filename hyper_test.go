@@ -38,6 +38,7 @@ func TestNew(t *testing.T) {
 		).
 		Middleware(func(c router.Context) {
 			c.Status(200)
+			c.Write([]byte("uid: "))
 		}).
 		Handle(func(c router.Context) {
 			c.Write([]byte(c.ProcessID()))

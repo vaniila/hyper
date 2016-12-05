@@ -12,6 +12,10 @@ type param struct {
 	require       bool
 }
 
+type paramconfig struct {
+	*param
+}
+
 func (v *param) Format(f router.DataFormat) router.Param {
 	v.format = f
 	return v
@@ -35,6 +39,38 @@ func (v *param) Default(b []byte) router.Param {
 func (v *param) Require(b bool) router.Param {
 	v.require = b
 	return v
+}
+
+func (v *param) Config() router.ParamConfig {
+	return &paramconfig{v}
+}
+
+func (v *paramconfig) Name() string {
+	return v.name
+}
+
+func (v *paramconfig) Type() router.ParamType {
+	return v.typ
+}
+
+func (v *paramconfig) Format() router.DataFormat {
+	return v.format
+}
+
+func (v *paramconfig) Summary() string {
+	return v.summary
+}
+
+func (v *paramconfig) Doc() string {
+	return v.documentation
+}
+
+func (v *paramconfig) Default() []byte {
+	return v.defaults
+}
+
+func (v *paramconfig) Require() bool {
+	return v.require
 }
 
 // Query func

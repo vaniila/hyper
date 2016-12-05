@@ -2,7 +2,7 @@ package router
 
 type server struct {
 	id     string
-	routes []Router
+	routes []Route
 }
 
 func (v *server) Start() error {
@@ -13,7 +13,7 @@ func (v *server) Stop() error {
 	return nil
 }
 
-func (v *server) add(pat, method string) Router {
+func (v *server) add(pat, method string) Route {
 	r := &router{
 		pat:    pat,
 		method: method,
@@ -24,35 +24,35 @@ func (v *server) add(pat, method string) Router {
 	return r
 }
 
-func (v *server) Get(pat string) Router {
+func (v *server) Get(pat string) Route {
 	return v.add(pat, "GET")
 }
 
-func (v *server) Head(pat string) Router {
+func (v *server) Head(pat string) Route {
 	return v.add(pat, "HEAD")
 }
 
-func (v *server) Options(pat string) Router {
+func (v *server) Options(pat string) Route {
 	return v.add(pat, "OPTIONS")
 }
 
-func (v *server) Post(pat string) Router {
+func (v *server) Post(pat string) Route {
 	return v.add(pat, "POST")
 }
 
-func (v *server) Put(pat string) Router {
+func (v *server) Put(pat string) Route {
 	return v.add(pat, "PUT")
 }
 
-func (v *server) Patch(pat string) Router {
+func (v *server) Patch(pat string) Route {
 	return v.add(pat, "PATCH")
 }
 
-func (v *server) Delete(pat string) Router {
+func (v *server) Delete(pat string) Route {
 	return v.add(pat, "DELETE")
 }
 
-func (v *server) Namespace(pat string) Router {
+func (v *server) Namespace(pat string) Route {
 	r := &router{
 		pat:       pat,
 		namespace: true,
@@ -61,10 +61,10 @@ func (v *server) Namespace(pat string) Router {
 	return r
 }
 
-func (v *server) Routes() []Router {
+func (v *server) Routes() []Route {
 	return v.routes
 }
 
 func (v *server) String() string {
-	return "Hyper::Router"
+	return "Hyper::Route"
 }

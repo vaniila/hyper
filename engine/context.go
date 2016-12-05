@@ -20,6 +20,8 @@ type Context struct {
 	header               router.Header
 	aborted              bool
 	wrote                bool
+	params               []router.Param
+	values               []router.Value
 	uaparser             *uaparser.Parser
 }
 
@@ -65,16 +67,43 @@ func (v *Context) Header() router.Header {
 	return v.header
 }
 
-func (v *Context) Param() router.Value {
+func (v *Context) MustParam(s string) router.Value {
 	return nil
 }
 
-func (v *Context) Query() router.Value {
+func (v *Context) MustQuery(s string) router.Value {
 	return nil
 }
 
-func (v *Context) Body() router.Value {
+func (v *Context) MustBody(s string) router.Value {
 	return nil
+}
+
+func (v *Context) Param(s string) (error, router.Value) {
+	var exist bool
+	for _, param := range v.params {
+		if s == param.Config().Name() {
+			exist = true
+			break
+		}
+	}
+	if !exist {
+		return nil, nil
+	}
+	for _, value := range v.values {
+		if s == value.Key() {
+			return nil, value
+		}
+	}
+	return nil, nil
+}
+
+func (v *Context) Query(s string) (error, router.Value) {
+	return nil, nil
+}
+
+func (v *Context) Body(s string) (error, router.Value) {
+	return nil, nil
 }
 
 func (v *Context) File(s string) []byte {

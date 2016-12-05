@@ -5,7 +5,7 @@ type config struct {
 	aliases       []string
 	name          string
 	method        string
-	routes        []Router
+	routes        []Route
 	namespace     bool
 	ws            bool
 	http          bool
@@ -57,7 +57,7 @@ func (v *config) Params() []Param {
 	return v.params
 }
 
-func (v *config) Routes() []Router {
+func (v *config) Routes() []Route {
 	return v.routes
 }
 
