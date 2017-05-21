@@ -1,6 +1,7 @@
 package hyper
 
 import (
+	"fmt"
 	"log"
 	"testing"
 
@@ -21,7 +22,7 @@ func TestNew(t *testing.T) {
 	ro := h.Router()
 
 	ro.Get("/").
-		Alias("/:name").
+		Alias("/oh").
 		Name("GetUsername").
 		Doc(`Retrieve username`).
 		Summary(`Retrieve username`).
@@ -39,40 +40,16 @@ func TestNew(t *testing.T) {
 		).
 		Middleware(func(c router.Context) {
 			c.Write([]byte("uid => "))
-			c.Write(c.Cookie().MustGet("name").Val())
 		}).
 		Handle(func(c router.Context) {
 			c.Write([]byte(" | "))
 			c.Write([]byte(c.ProcessID()))
+			c.Cache().Set([]byte("hello:world"), []byte("hello world data"), 0)
+			v, _ := c.Cache().Get([]byte("hello:world"))
+			fmt.Println(v, string(v[:]))
 		}).
 		Catch(func(c router.Context) {
 			c.Error(c.Recover())
-		})
-
-	ns := ro.Namespace("/test").
-		Name("testing").
-		Doc(`testing documentation`).
-		Summary(`testing summary`)
-
-	ns.Get("/").
-		Name("testing").
-		Doc(``).
-		Summary(``).
-		Handle(func(c router.Context) {
-			c.Status(200).Write([]byte("hello world"))
-		})
-
-	no := ns.Namespace("/hello").
-		Name("hello").
-		Doc(`hello documentation`).
-		Summary(`hello summary`)
-
-	no.Get("/").
-		Name("hello").
-		Doc(``).
-		Summary(``).
-		Handle(func(c router.Context) {
-			c.Status(200).Write([]byte("hello"))
 		})
 
 	log.Print(ro)

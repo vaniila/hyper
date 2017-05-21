@@ -20,6 +20,7 @@ func New(opts ...Option) *Hyper {
 		engine.ID(o.ID),
 		engine.Addr(o.Addr),
 		engine.Proto(o.Protocol),
+		engine.Cache(c),
 		engine.Router(r),
 	)
 	w := websocket.New(
