@@ -75,20 +75,25 @@ func (v *paramconfig) Require() bool {
 
 // Query func
 func Query(name string) router.Param {
-	return &param{}
+	return &param{typ: router.ParamQuery, name: name}
 }
 
 // Body func
 func Body(name string) router.Param {
-	return &param{}
+	return &param{typ: router.ParamBody, name: name}
 }
 
 // Param func
 func Param(name string) router.Param {
-	return &param{}
+	return &param{typ: router.ParamParam, name: name}
 }
 
 // Header func
 func Header(name string) router.Param {
-	return &param{}
+	return &param{typ: router.ParamHeader, name: name}
+}
+
+// Cookie func
+func Cookie(name string) router.Param {
+	return &param{typ: router.ParamCookie, name: name}
 }

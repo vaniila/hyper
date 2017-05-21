@@ -25,5 +25,5 @@ func (v *Value) Val() []byte {
 }
 
 func (v *Value) String() string {
-	return ""
+	return string(v.val)
 }

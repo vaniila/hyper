@@ -16,6 +16,7 @@ type router struct {
 	params        []Param
 	middleware    HandlerFuncs
 	handler       HandlerFunc
+	catch         HandlerFunc
 	models        []Model
 }
 
@@ -101,6 +102,12 @@ func (v *router) Doc(s string) Route {
 func (v *router) Params(ps ...Param) Route {
 	for _, param := range ps {
 		if param != nil {
+			switch v.method {
+			case "GET", "HEAD", "DELETE":
+				if param.Config().Type() == ParamBody {
+					log.Fatalf("Route [%s] %s does not accept any request body parameter [%v]", v.method, v.pat, param.Config().Name())
+				}
+			}
 			v.params = append(v.params, param)
 		}
 	}
@@ -109,9 +116,17 @@ func (v *router) Params(ps ...Param) Route {
 
 func (v *router) Handle(f HandlerFunc) Route {
 	if v.handler != nil {
-		log.Fatalf("Route %s can only have one handler", v.pat)
+		log.Fatalf("Route %s can only have one response handler", v.pat)
 	}
 	v.handler = f
+	return v
+}
+
+func (v *router) Catch(f HandlerFunc) Route {
+	if v.catch != nil {
+		log.Fatalf("Route %s can only have one catch handler", v.pat)
+	}
+	v.catch = f
 	return v
 }
 
@@ -153,6 +168,7 @@ func (v *router) Config() RouteConfig {
 		params:        v.params,
 		middleware:    v.middleware,
 		handler:       v.handler,
+		catch:         v.catch,
 		models:        v.models,
 	}
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/samuelngs/hyper/router/cookie"
 	"github.com/samuelngs/hyper/tracer"
 )
 
@@ -27,14 +28,16 @@ type Context interface {
 	MustParam(s string) Value
 	MustQuery(s string) Value
 	MustBody(s string) Value
-	Param(s string) (error, Value)
-	Query(s string) (error, Value)
-	Body(s string) (error, Value)
+	Param(s string) (Value, error)
+	Query(s string) (Value, error)
+	Body(s string) (Value, error)
 	File(s string) []byte
 	Tracer() tracer.Tracer
+	Recover() error
 	Abort()
 	IsAborted() bool
 	Write(b []byte) Context
+	Error(error) Context
 	Json(o interface{}) Context
 	Status(code int) Context
 }
@@ -55,13 +58,15 @@ type Value interface {
 // Header interface
 type Header interface {
 	Set(key string, val string)
-	Get(key string) Value
+	Get(key string) (Value, error)
+	MustGet(key string) Value
 }
 
 // Cookie interface
 type Cookie interface {
-	Set(key string, val string)
-	Get(key string) Value
+	Set(key string, val string, opts ...cookie.Option)
+	Get(key string) (Value, error)
+	MustGet(key string) Value
 }
 
 // Client interface

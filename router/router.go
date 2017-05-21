@@ -32,6 +32,7 @@ type Route interface {
 	Doc(string) Route
 	Params(...Param) Route
 	Handle(HandlerFunc) Route
+	Catch(HandlerFunc) Route
 	Middleware(...HandlerFunc) Route
 	Websocket(bool) Route
 	HTTP(bool) Route
@@ -53,6 +54,7 @@ type RouteConfig interface {
 	Params() []Param
 	Routes() []Route
 	Handler() HandlerFunc
+	Catch() HandlerFunc
 	Middlewares() HandlerFuncs
 	Model(int) interface{}
 }

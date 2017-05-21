@@ -21,7 +21,7 @@ func TestNew(t *testing.T) {
 	ro := h.Router()
 
 	ro.Get("/").
-		Alias("/name").
+		Alias("/:name").
 		Name("GetUsername").
 		Doc(`Retrieve username`).
 		Summary(`Retrieve username`).
@@ -33,15 +33,20 @@ func TestNew(t *testing.T) {
 				Require(true),
 		).
 		Models(
+			Model(StatusOK, new(string)),
 			Model(StatusOK, new(TestHTTPResponse)),
 			Model(StatusForbidden, new(TestHTTPResponse)),
 		).
 		Middleware(func(c router.Context) {
-			c.Status(200)
-			c.Write([]byte("uid: "))
+			c.Write([]byte("uid => "))
+			c.Write(c.Cookie().MustGet("name").Val())
 		}).
 		Handle(func(c router.Context) {
+			c.Write([]byte(" | "))
 			c.Write([]byte(c.ProcessID()))
+		}).
+		Catch(func(c router.Context) {
+			c.Error(c.Recover())
 		})
 
 	ns := ro.Namespace("/test").

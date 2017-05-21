@@ -14,6 +14,7 @@ type config struct {
 	params        []Param
 	middleware    HandlerFuncs
 	handler       HandlerFunc
+	catch         HandlerFunc
 	models        []Model
 }
 
@@ -63,6 +64,10 @@ func (v *config) Routes() []Route {
 
 func (v *config) Handler() HandlerFunc {
 	return v.handler
+}
+
+func (v *config) Catch() HandlerFunc {
+	return v.catch
 }
 
 func (v *config) Middlewares() HandlerFuncs {

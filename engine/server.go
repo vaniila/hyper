@@ -5,6 +5,7 @@ import (
 
 	"github.com/pressly/chi"
 	"github.com/pressly/chi/middleware"
+	"github.com/samuelngs/hyper/fault"
 	"github.com/samuelngs/hyper/router"
 	"github.com/ua-parser/uap-go/uaparser"
 
@@ -39,6 +40,23 @@ func (v *server) handler(conf router.RouteConfig) func(http.ResponseWriter, *htt
 			params:    conf.Params(),
 			uaparser:  v.uaparser,
 		}
+		h := &Header{
+			context: c,
+		}
+		s := &Cookie{
+			context: c,
+		}
+		c.header = h
+		c.cookie = s
+		defer func() {
+			if err, ok := recover().(error); ok && err != nil && !c.IsAborted() {
+				c.recover = err
+				if catch := conf.Catch(); catch != nil {
+					catch(c)
+				}
+			}
+		}()
+		var warnings []fault.Cause
 		for _, pa := range conf.Params() {
 			conf := pa.Config()
 			data := &Value{
@@ -49,7 +67,7 @@ func (v *server) handler(conf router.RouteConfig) func(http.ResponseWriter, *htt
 			case router.ParamBody:
 				data.val = []byte(r.FormValue(conf.Name()))
 			case router.ParamParam:
-				data.val = []byte(chi.URLParam(r.Context(), conf.Name()))
+				data.val = []byte(chi.URLParam(r, conf.Name()))
 			case router.ParamQuery:
 				data.val = []byte(r.URL.Query().Get(conf.Name()))
 			case router.ParamHeader:
@@ -61,15 +79,31 @@ func (v *server) handler(conf router.RouteConfig) func(http.ResponseWriter, *htt
 					data.val = []byte(cookie.Value)
 				}
 			}
+			if len(data.val) == 0 || data.val == nil {
+				if conf.Require() {
+					warning := fault.
+						For(fault.MissingField).
+						SetResource(conf.Type().String()).
+						SetField(conf.Name())
+					warnings = append(warnings, warning)
+				}
+				data.val = conf.Default()
+			}
 			c.values = append(c.values, data)
 		}
+		if len(warnings) > 0 {
+			err := fault.
+				New("Validation Failed").
+				SetStatus(http.StatusUnprocessableEntity).
+				AddCause(warnings...)
+			panic(err)
+		}
 		for _, md := range conf.Middlewares() {
-			if !c.IsAborted() {
+			if !c.IsAborted() && md != nil {
 				md(c)
 			}
 		}
-		if !c.IsAborted() {
-			handler := conf.Handler()
+		if handler := conf.Handler(); !c.IsAborted() && handler != nil {
 			handler(c)
 		}
 	}
@@ -139,6 +173,7 @@ func (v *server) Start() error {
 	// create router
 	mux := chi.NewRouter()
 	mux.Use(middleware.RequestID)
+	mux.Use(middleware.RealIP)
 	mux.Use(middleware.Recoverer)
 	v.buildRoutes(mux, v.router.Routes())
 

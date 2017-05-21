@@ -2,8 +2,10 @@ package engine
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 
+	"github.com/samuelngs/hyper/fault"
 	"github.com/samuelngs/hyper/router"
 	"github.com/samuelngs/hyper/tracer"
 	"github.com/ua-parser/uap-go/uaparser"
@@ -23,6 +25,7 @@ type Context struct {
 	params               []router.Param
 	values               []router.Value
 	uaparser             *uaparser.Parser
+	recover              error
 }
 
 func (v Context) MachineID() string {
@@ -68,42 +71,93 @@ func (v *Context) Header() router.Header {
 }
 
 func (v *Context) MustParam(s string) router.Value {
-	return nil
+	val, err := v.Param(s)
+	if err != nil {
+		panic(err)
+	}
+	return val
 }
 
 func (v *Context) MustQuery(s string) router.Value {
-	return nil
+	val, err := v.Query(s)
+	if err != nil {
+		panic(err)
+	}
+	return val
 }
 
 func (v *Context) MustBody(s string) router.Value {
-	return nil
+	val, err := v.Body(s)
+	if err != nil {
+		panic(err)
+	}
+	return val
 }
 
-func (v *Context) Param(s string) (error, router.Value) {
-	var exist bool
+func (v *Context) Param(s string) (router.Value, error) {
 	for _, param := range v.params {
-		if s == param.Config().Name() {
-			exist = true
-			break
+		if param.Config().Name() == s && param.Config().Type() == router.ParamParam {
+			for _, value := range v.values {
+				if value.Key() == s {
+					return value, nil
+				}
+			}
 		}
 	}
-	if !exist {
-		return nil, nil
-	}
-	for _, value := range v.values {
-		if s == value.Key() {
-			return nil, value
+	err := fault.
+		New("Illegal Field Entity").
+		SetStatus(http.StatusUnprocessableEntity).
+		AddCause(
+			fault.
+				For(fault.UnregisteredField).
+				SetResource(router.ParamParam.String()).
+				SetField(s),
+		)
+	return nil, err
+}
+
+func (v *Context) Query(s string) (router.Value, error) {
+	for _, param := range v.params {
+		if param.Config().Name() == s && param.Config().Type() == router.ParamQuery {
+			for _, value := range v.values {
+				if value.Key() == s {
+					return value, nil
+				}
+			}
 		}
 	}
-	return nil, nil
+	err := fault.
+		New("Illegal Field Entity").
+		SetStatus(http.StatusUnprocessableEntity).
+		AddCause(
+			fault.
+				For(fault.UnregisteredField).
+				SetResource(router.ParamQuery.String()).
+				SetField(s),
+		)
+	return nil, err
 }
 
-func (v *Context) Query(s string) (error, router.Value) {
-	return nil, nil
-}
-
-func (v *Context) Body(s string) (error, router.Value) {
-	return nil, nil
+func (v *Context) Body(s string) (router.Value, error) {
+	for _, param := range v.params {
+		if param.Config().Name() == s && param.Config().Type() == router.ParamBody {
+			for _, value := range v.values {
+				if value.Key() == s {
+					return value, nil
+				}
+			}
+		}
+	}
+	err := fault.
+		New("Illegal Field Entity").
+		SetStatus(http.StatusUnprocessableEntity).
+		AddCause(
+			fault.
+				For(fault.UnregisteredField).
+				SetResource(router.ParamBody.String()).
+				SetField(s),
+		)
+	return nil, err
 }
 
 func (v *Context) File(s string) []byte {
@@ -112,6 +166,10 @@ func (v *Context) File(s string) []byte {
 
 func (v *Context) Tracer() tracer.Tracer {
 	return nil
+}
+
+func (v *Context) Recover() error {
+	return v.recover
 }
 
 func (v *Context) Abort() {
@@ -124,12 +182,41 @@ func (v *Context) IsAborted() bool {
 
 func (v *Context) Write(b []byte) router.Context {
 	if !v.IsAborted() {
+		if !v.wrote {
+			v.wrote = true
+		}
 		v.res.Write(b)
 	}
 	return v
 }
 
+func (v *Context) Error(e error) router.Context {
+	if e != nil {
+		if f, ok := fault.Is(e); ok {
+			v.Status(f.Status())
+			v.Write(f.Json())
+		} else {
+			v.Write([]byte(e.Error()))
+		}
+	}
+	return v
+}
+
 func (v *Context) Json(o interface{}) router.Context {
+	switch b, e := json.Marshal(o); {
+	case e != nil:
+		err := fault.
+			New("Problems serializing JSON").
+			SetStatus(http.StatusInternalServerError).
+			AddCause(
+				fault.
+					For(fault.Invalid).
+					SetResource("response"),
+			)
+		panic(err)
+	default:
+		v.Write(b)
+	}
 	return v
 }
 
