@@ -1,24 +1,21 @@
-hash: e638f8db1c5a3d8ed0e23a104d1226313c88cb4736b055d835fb7d26eca0fe83
-updated: 2016-12-03T23:33:55.96177824-07:00
+hash: 2494cacbb07de764a001e86761e2f670a8e353f36c47f0c03048bf38da069b98
+updated: 2017-05-21T01:06:25.548646584-06:00
 imports:
 - name: github.com/gorilla/websocket
-  version: 1f512fc3f05332ba7117626cdfb4e07474e58e60
+  version: 3ab3a8b8831546bd18fd182c20687ca853b2bb13
 - name: github.com/pressly/chi
-  version: 0c0be26887fc176249c3bbd069cb9f9f3f757ed5
+  version: e6033ea75479391a4bce3918fc119cad31e1cb30
   subpackages:
   - middleware
 - name: github.com/ua-parser/uap-go
-  version: 08c9ab17c54f06ccfe5256695a9f715a47404cfe
+  version: e2a4d9b506bab1f6059bdff1d380361d3935236c
   subpackages:
   - uaparser
 - name: golang.org/x/net
-  version: 6cdc0daab091c43fc46193327e0047b4f883c613
+  version: f315505cf3349909cdf013ea56690da34e96a451
   subpackages:
-  - context
   - http2
   - http2/hpack
-  - idna
-  - lex/httplex
 - name: gopkg.in/yaml.v2
-  version: a5b47d31c556af34a302ce5d659e6fea44d90de0
+  version: 53feefa2559fb8dfa8d81baad31be332c97d6c77
 testImports: []
