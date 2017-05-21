@@ -3,6 +3,7 @@ package router
 import (
 	"context"
 	"net/http"
+	"time"
 
 	"github.com/samuelngs/hyper/router/cookie"
 	"github.com/samuelngs/hyper/tracer"
@@ -44,8 +45,8 @@ type Context interface {
 
 // Cache interface
 type Cache interface {
-	Set(key string, data []byte)
-	Get(key string) []byte
+	Set(key []byte, data []byte, ttl time.Duration) error
+	Get(key []byte) ([]byte, error)
 }
 
 // Value interface

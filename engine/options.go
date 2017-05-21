@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"fmt"
 
+	"github.com/samuelngs/hyper/cache"
 	"github.com/samuelngs/hyper/router"
 )
 
@@ -21,6 +22,9 @@ type Options struct {
 
 	// HTTP protocol 1.1 / 2.0
 	Protocol Protocol
+
+	// Cache
+	Cache cache.Service
 
 	// Router
 	Router router.Service
@@ -64,6 +68,13 @@ func Addr(s string) Option {
 func Proto(p Protocol) Option {
 	return func(o *Options) {
 		o.Protocol = p
+	}
+}
+
+// Cache to bind cache interface to engine server
+func Cache(c cache.Service) Option {
+	return func(o *Options) {
+		o.Cache = c
 	}
 }
 

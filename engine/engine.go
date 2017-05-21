@@ -14,6 +14,7 @@ func New(opts ...Option) Service {
 		id:       o.ID,
 		addr:     o.Addr,
 		protocol: o.Protocol,
+		cache:    o.Cache,
 		router:   o.Router,
 	}
 	return s
