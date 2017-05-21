@@ -1,9 +1,13 @@
 package cache
 
+import "time"
+
 // Service interface
 type Service interface {
 	Start() error
 	Stop() error
+	Set([]byte, []byte, time.Duration) error
+	Get([]byte) ([]byte, error)
 	String() string
 }
 
