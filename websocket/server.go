@@ -1,7 +1,14 @@
 package websocket
 
+import (
+	"github.com/samuelngs/hyper/cache"
+	"github.com/samuelngs/hyper/message"
+)
+
 type server struct {
-	id string
+	id      string
+	cache   cache.Service
+	message message.Service
 }
 
 func (v *server) Start() error {
@@ -13,5 +20,5 @@ func (v *server) Stop() error {
 }
 
 func (v *server) String() string {
-	return "Hyper::Cache"
+	return "Hyper::Websocket"
 }

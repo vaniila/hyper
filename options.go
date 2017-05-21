@@ -4,7 +4,10 @@ import (
 	"crypto/rand"
 	"fmt"
 
+	"github.com/samuelngs/hyper/cache"
 	"github.com/samuelngs/hyper/engine"
+	"github.com/samuelngs/hyper/message"
+	"github.com/samuelngs/hyper/router"
 )
 
 // Option func
@@ -21,6 +24,15 @@ type Options struct {
 
 	// HTTP protocol 1.1 / 2.0
 	Protocol engine.Protocol
+
+	// Cache engine
+	Cache cache.Service
+
+	// Router
+	Router router.Service
+
+	// Message broker
+	Message message.Service
 
 	// before and after funcs
 	BeforeStart []func() error
@@ -43,6 +55,21 @@ func newOptions(opts ...Option) Options {
 	}
 	for _, o := range opts {
 		o(&opt)
+	}
+	if opt.Cache == nil {
+		opt.Cache = cache.New(
+			cache.ID(opt.ID),
+		)
+	}
+	if opt.Router == nil {
+		opt.Router = router.New(
+			router.ID(opt.ID),
+		)
+	}
+	if opt.Message == nil {
+		opt.Message = message.New(
+			message.ID(opt.ID),
+		)
 	}
 	return opt
 }
@@ -72,6 +99,27 @@ func HTTP() Option {
 func HTTP2() Option {
 	return func(o *Options) {
 		o.Protocol = engine.HTTP2
+	}
+}
+
+// Cache to set custom cache engine
+func Cache(c cache.Service) Option {
+	return func(o *Options) {
+		o.Cache = c
+	}
+}
+
+// Router to set custom router
+func Router(r router.Service) Option {
+	return func(o *Options) {
+		o.Router = r
+	}
+}
+
+// Message to set custom message broker
+func Message(m message.Service) Option {
+	return func(o *Options) {
+		o.Message = m
 	}
 }
 

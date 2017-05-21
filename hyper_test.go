@@ -1,7 +1,6 @@
 package hyper
 
 import (
-	"fmt"
 	"log"
 	"testing"
 
@@ -44,9 +43,6 @@ func TestNew(t *testing.T) {
 		Handle(func(c router.Context) {
 			c.Write([]byte(" | "))
 			c.Write([]byte(c.ProcessID()))
-			c.Cache().Set([]byte("hello:world"), []byte("hello world data"), 0)
-			v, _ := c.Cache().Get([]byte("hello:world"))
-			fmt.Println(v, string(v[:]))
 		}).
 		Catch(func(c router.Context) {
 			c.Error(c.Recover())

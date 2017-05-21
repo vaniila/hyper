@@ -8,6 +8,7 @@ import (
 
 	"github.com/samuelngs/hyper/cache"
 	"github.com/samuelngs/hyper/engine"
+	"github.com/samuelngs/hyper/message"
 	"github.com/samuelngs/hyper/router"
 	"github.com/samuelngs/hyper/websocket"
 )
@@ -19,6 +20,7 @@ type Hyper struct {
 	cache     cache.Service
 	router    router.Service
 	engine    engine.Service
+	message   message.Service
 	websocket websocket.Service
 }
 
@@ -30,6 +32,9 @@ func (v *Hyper) start() error {
 		return err
 	}
 	if err := v.engine.Start(); err != nil {
+		return err
+	}
+	if err := v.message.Start(); err != nil {
 		return err
 	}
 	if err := v.websocket.Start(); err != nil {
@@ -47,6 +52,9 @@ func (v *Hyper) stop() error {
 		return err
 	}
 	if err := v.engine.Stop(); err != nil {
+		return err
+	}
+	if err := v.message.Stop(); err != nil {
 		return err
 	}
 	if err := v.websocket.Stop(); err != nil {

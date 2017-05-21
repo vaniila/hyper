@@ -7,6 +7,7 @@ import (
 	"github.com/pressly/chi/middleware"
 	"github.com/samuelngs/hyper/cache"
 	"github.com/samuelngs/hyper/fault"
+	"github.com/samuelngs/hyper/message"
 	"github.com/samuelngs/hyper/router"
 	"github.com/ua-parser/uap-go/uaparser"
 
@@ -20,6 +21,7 @@ type server struct {
 	addr     string
 	protocol Protocol
 	cache    cache.Service
+	message  message.Service
 	router   router.Service
 	uaparser *uaparser.Parser
 	ln       *net.Listener
@@ -41,6 +43,7 @@ func (v *server) handler(conf router.RouteConfig) func(http.ResponseWriter, *htt
 			values:    make([]router.Value, 0),
 			params:    conf.Params(),
 			cache:     v.cache,
+			message:   v.message,
 			uaparser:  v.uaparser,
 		}
 		h := &Header{

@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/samuelngs/hyper/cache"
+	"github.com/samuelngs/hyper/message"
 	"github.com/samuelngs/hyper/router"
 )
 
@@ -26,6 +27,9 @@ type Options struct {
 	// Cache
 	Cache cache.Service
 
+	// Message broker
+	Message message.Service
+
 	// Router
 	Router router.Service
 }
@@ -46,6 +50,21 @@ func newOptions(opts ...Option) Options {
 	}
 	for _, o := range opts {
 		o(&opt)
+	}
+	if opt.Cache == nil {
+		opt.Cache = cache.New(
+			cache.ID(opt.ID),
+		)
+	}
+	if opt.Router == nil {
+		opt.Router = router.New(
+			router.ID(opt.ID),
+		)
+	}
+	if opt.Message == nil {
+		opt.Message = message.New(
+			message.ID(opt.ID),
+		)
 	}
 	return opt
 }
@@ -75,6 +94,13 @@ func Proto(p Protocol) Option {
 func Cache(c cache.Service) Option {
 	return func(o *Options) {
 		o.Cache = c
+	}
+}
+
+// Message broker
+func Message(m message.Service) Option {
+	return func(o *Options) {
+		o.Message = m
 	}
 }
 

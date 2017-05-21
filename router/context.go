@@ -24,6 +24,7 @@ type Context interface {
 	Res() http.ResponseWriter
 	Client() Client
 	Cache() Cache
+	Message() Message
 	Cookie() Cookie
 	Header() Header
 	MustParam(s string) Value
@@ -47,6 +48,12 @@ type Context interface {
 type Cache interface {
 	Set(key []byte, data []byte, ttl time.Duration) error
 	Get(key []byte) ([]byte, error)
+}
+
+// Message broker interface
+type Message interface {
+	Emit([]byte, []byte) error
+	Listen([]byte) (<-chan []byte, chan<- struct{}, error)
 }
 
 // Value interface

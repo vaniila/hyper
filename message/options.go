@@ -1,12 +1,8 @@
-package websocket
+package message
 
 import (
 	"crypto/rand"
 	"fmt"
-
-	"github.com/samuelngs/hyper/cache"
-	"github.com/samuelngs/hyper/message"
-	"github.com/samuelngs/hyper/router"
 )
 
 // Option func
@@ -17,15 +13,6 @@ type Options struct {
 
 	// engine server unique id
 	ID string
-
-	// Cache server
-	Cache cache.Service
-
-	// Message broker
-	Message message.Service
-
-	// Router
-	Router router.Service
 }
 
 func newID() string {
@@ -50,26 +37,5 @@ func newOptions(opts ...Option) Options {
 func ID(s string) Option {
 	return func(o *Options) {
 		o.ID = s
-	}
-}
-
-// Cache to bind cache interface to engine server
-func Cache(c cache.Service) Option {
-	return func(o *Options) {
-		o.Cache = c
-	}
-}
-
-// Message broker
-func Message(m message.Service) Option {
-	return func(o *Options) {
-		o.Message = m
-	}
-}
-
-// Router to bind router to engine server
-func Router(r router.Service) Option {
-	return func(o *Options) {
-		o.Router = r
 	}
 }
