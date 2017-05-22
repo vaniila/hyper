@@ -8,6 +8,7 @@ import (
 	"github.com/samuelngs/hyper/engine"
 	"github.com/samuelngs/hyper/message"
 	"github.com/samuelngs/hyper/router"
+	"github.com/samuelngs/hyper/sync"
 )
 
 // Option func
@@ -24,6 +25,9 @@ type Options struct {
 
 	// HTTP protocol 1.1 / 2.0
 	Protocol engine.Protocol
+
+	// sync engine
+	Sync sync.Service
 
 	// Cache engine
 	Cache cache.Service
@@ -61,14 +65,21 @@ func newOptions(opts ...Option) Options {
 			cache.ID(opt.ID),
 		)
 	}
-	if opt.Router == nil {
-		opt.Router = router.New(
-			router.ID(opt.ID),
-		)
-	}
 	if opt.Message == nil {
 		opt.Message = message.New(
 			message.ID(opt.ID),
+		)
+	}
+	if opt.Sync == nil {
+		opt.Sync = sync.New(
+			sync.ID(opt.ID),
+			sync.Cache(opt.Cache),
+			sync.Message(opt.Message),
+		)
+	}
+	if opt.Router == nil {
+		opt.Router = router.New(
+			router.ID(opt.ID),
 		)
 	}
 	return opt
@@ -99,6 +110,13 @@ func HTTP() Option {
 func HTTP2() Option {
 	return func(o *Options) {
 		o.Protocol = engine.HTTP2
+	}
+}
+
+// Sync to set custom sync engine
+func Sync(s sync.Service) Option {
+	return func(o *Options) {
+		o.Sync = s
 	}
 }
 

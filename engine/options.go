@@ -7,6 +7,7 @@ import (
 	"github.com/samuelngs/hyper/cache"
 	"github.com/samuelngs/hyper/message"
 	"github.com/samuelngs/hyper/router"
+	"github.com/samuelngs/hyper/websocket"
 )
 
 // Option func
@@ -32,6 +33,9 @@ type Options struct {
 
 	// Router
 	Router router.Service
+
+	// Websocket service
+	Websocket websocket.Service
 }
 
 func newID() string {
@@ -108,5 +112,12 @@ func Message(m message.Service) Option {
 func Router(r router.Service) Option {
 	return func(o *Options) {
 		o.Router = r
+	}
+}
+
+// Websocket to bind websocket server
+func Websocket(w websocket.Service) Option {
+	return func(o *Options) {
+		o.Websocket = w
 	}
 }

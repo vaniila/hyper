@@ -23,8 +23,8 @@ type Context interface {
 	Req() *http.Request
 	Res() http.ResponseWriter
 	Client() Client
-	Cache() Cache
-	Message() Message
+	Cache() CacheAdaptor
+	Message() MessageAdaptor
 	Cookie() Cookie
 	Header() Header
 	MustParam(s string) Value
@@ -44,14 +44,14 @@ type Context interface {
 	Status(code int) Context
 }
 
-// Cache interface
-type Cache interface {
+// CacheAdaptor interface
+type CacheAdaptor interface {
 	Set(key []byte, data []byte, ttl time.Duration) error
 	Get(key []byte) ([]byte, error)
 }
 
-// Message broker interface
-type Message interface {
+// MessageAdaptor broker interface
+type MessageAdaptor interface {
 	Emit([]byte, []byte) error
 	Listen([]byte) (<-chan []byte, chan<- struct{}, error)
 }

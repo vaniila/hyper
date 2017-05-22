@@ -8,6 +8,13 @@ import (
 // New creates a hyper server
 func New(opts ...Option) *Hyper {
 	o := newOptions(opts...)
+	w := websocket.New(
+		websocket.ID(o.ID),
+		websocket.Sync(o.Sync),
+		websocket.Cache(o.Cache),
+		websocket.Message(o.Message),
+		websocket.Router(o.Router),
+	)
 	e := engine.New(
 		engine.ID(o.ID),
 		engine.Addr(o.Addr),
@@ -15,19 +22,15 @@ func New(opts ...Option) *Hyper {
 		engine.Cache(o.Cache),
 		engine.Message(o.Message),
 		engine.Router(o.Router),
-	)
-	w := websocket.New(
-		websocket.ID(o.ID),
-		websocket.Cache(o.Cache),
-		websocket.Message(o.Message),
-		websocket.Router(o.Router),
+		engine.Websocket(w),
 	)
 	return &Hyper{
 		id:        o.ID,
 		addr:      o.Addr,
 		cache:     o.Cache,
-		router:    o.Router,
 		message:   o.Message,
+		sync:      o.Sync,
+		router:    o.Router,
 		engine:    e,
 		websocket: w,
 	}

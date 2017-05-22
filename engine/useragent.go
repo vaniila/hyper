@@ -9,16 +9,6 @@ user_agent_parsers:
   - regex: '(CFNetwork)(?:/(\d+)\.(\d+)\.?(\d+)?)?'
     family_replacement: 'CFNetwork'
 
-  # Yardly iOS
-  - regex: '(yardly_ios)/(\d+)\.(\d+)\.(\d+)'
-    os_replacement: 'iOS'
-    family_replacement: 'Yardly iOS'
-
-  # Yardly Android
-  - regex: '(yardly_android)/(\d+)\.(\d+)\.(\d+)'
-    os_replacement: 'Android'
-    family_replacement: 'Yardly Android'
-
   # Pingdom
   - regex: '(Pingdom.com_bot_version_)(\d+)\.(\d+)'
     family_replacement: 'PingdomBot'

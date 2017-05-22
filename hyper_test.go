@@ -1,15 +1,11 @@
 package hyper
 
 import (
-	"log"
 	"testing"
 
 	"github.com/samuelngs/hyper/router"
+	"github.com/samuelngs/hyper/sync"
 )
-
-type TestHTTPResponse struct {
-	Message string
-}
 
 func TestNew(t *testing.T) {
 
@@ -18,40 +14,54 @@ func TestNew(t *testing.T) {
 		HTTP2(),
 	)
 
+	ws := h.Sync()
+
+	ws.Namespace("default").
+		Alias("test").
+		Name("DefaultNamespace").
+		Doc(`Default websocket namespace`).
+		Summary(`Default websocket namespace`).
+		Authorize(func(c sync.Context) error {
+			return nil
+		}).
+		Middleware(func(d []byte, c sync.Context) {
+		}).
+		Handle("ping", func(d []byte, c sync.Context) {
+		}).
+		Handle("pong", func(d []byte, c sync.Context) {
+		}).
+		Catch(func(d []byte, c sync.Context) {
+		})
+
 	ro := h.Router()
 
 	ro.Get("/").
-		Alias("/oh").
-		Name("GetUsername").
-		Doc(`Retrieve username`).
-		Summary(`Retrieve username`).
+		Alias("/test").
+		Name("TestIndex").
+		Doc(`Test index page`).
+		Summary(`Test index page`).
 		Params(
-			Query("name").
-				Doc(`The username`).
-				Summary(`The username`).
-				Default([]byte("")).
-				Require(true),
+			Query("greeting").
+				Doc(`The greeting message`).
+				Summary(`The greeting message`).
+				Default([]byte("Hello")).
+				Require(false),
 		).
 		Models(
 			Model(StatusOK, new(string)),
-			Model(StatusOK, new(TestHTTPResponse)),
-			Model(StatusForbidden, new(TestHTTPResponse)),
 		).
 		Middleware(func(c router.Context) {
-			c.Write([]byte("uid => "))
+			c.Write([]byte(c.ProcessID()))
+			c.Write([]byte(" => "))
 		}).
 		Handle(func(c router.Context) {
-			c.Write([]byte(" | "))
-			c.Write([]byte(c.ProcessID()))
+			c.Write(c.MustQuery("greeting").Val())
+			c.Write([]byte("!"))
 		}).
 		Catch(func(c router.Context) {
 			c.Error(c.Recover())
 		})
 
-	log.Print(ro)
-
-	if e := h.Run(); e != nil {
-		log.Print(e)
-	}
+	h.Run()
 
 }

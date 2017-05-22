@@ -9,6 +9,7 @@ import (
 	"github.com/samuelngs/hyper/fault"
 	"github.com/samuelngs/hyper/message"
 	"github.com/samuelngs/hyper/router"
+	"github.com/samuelngs/hyper/websocket"
 	"github.com/ua-parser/uap-go/uaparser"
 
 	"golang.org/x/net/http2"
@@ -17,14 +18,15 @@ import (
 )
 
 type server struct {
-	id       string
-	addr     string
-	protocol Protocol
-	cache    cache.Service
-	message  message.Service
-	router   router.Service
-	uaparser *uaparser.Parser
-	ln       *net.Listener
+	id        string
+	addr      string
+	protocol  Protocol
+	cache     cache.Service
+	message   message.Service
+	router    router.Service
+	websocket websocket.Service
+	uaparser  *uaparser.Parser
+	ln        *net.Listener
 }
 
 func (v *server) handler(conf router.RouteConfig) func(http.ResponseWriter, *http.Request) {
@@ -158,6 +160,18 @@ func (v *server) buildRoutes(mux *chi.Mux, routes []router.Route) {
 				mux.Delete(alias, v.handler(conf))
 			}
 		}
+	}
+	if v.websocket != nil {
+		mux.Get("/_s", v.handler(
+			v.router.Get("/_s").
+				Name("Websocket").
+				Doc(`Websocket endpoint`).
+				Summary(`Websocket endpoint`).
+				Handle(func(c router.Context) {
+					v.websocket.Handle(c)
+				}).
+				Config(),
+		))
 	}
 }
 

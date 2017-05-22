@@ -17,8 +17,8 @@ type Context struct {
 	req                  *http.Request
 	res                  http.ResponseWriter
 	client               router.Client
-	cache                router.Cache
-	message              router.Message
+	cache                router.CacheAdaptor
+	message              router.MessageAdaptor
 	cookie               router.Cookie
 	header               router.Header
 	aborted              bool
@@ -59,11 +59,11 @@ func (v *Context) Client() router.Client {
 	return v.client
 }
 
-func (v *Context) Cache() router.Cache {
+func (v *Context) Cache() router.CacheAdaptor {
 	return v.cache
 }
 
-func (v *Context) Message() router.Message {
+func (v *Context) Message() router.MessageAdaptor {
 	return v.message
 }
 
