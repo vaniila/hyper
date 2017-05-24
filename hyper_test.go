@@ -16,21 +16,27 @@ func TestNew(t *testing.T) {
 
 	ws := h.Sync()
 
+	ws.BeforeOpen(func(c sync.Context) {
+	})
+
+	ws.AfterClose(func(c sync.Context) {
+	})
+
 	ws.Namespace("default").
 		Alias("test").
 		Name("DefaultNamespace").
 		Doc(`Default websocket namespace`).
 		Summary(`Default websocket namespace`).
-		Authorize(func(c sync.Context) error {
+		Authorize(func(n string, c sync.Context) error {
 			return nil
 		}).
-		Middleware(func(d []byte, c sync.Context) {
+		Middleware(func(m []byte, n sync.Channel, c sync.Context) {
 		}).
-		Handle("ping", func(d []byte, c sync.Context) {
+		Handle("ping", func(m []byte, n sync.Channel, c sync.Context) {
 		}).
-		Handle("pong", func(d []byte, c sync.Context) {
+		Handle("pong", func(m []byte, n sync.Channel, c sync.Context) {
 		}).
-		Catch(func(d []byte, c sync.Context) {
+		Catch(func(m []byte, n sync.Channel, c sync.Context) {
 		})
 
 	ro := h.Router()
