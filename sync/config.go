@@ -10,6 +10,7 @@ type config struct {
 	catch         HandlerFunc
 	handlers      []Handler
 	middleware    HandlerFuncs
+	channels      Channels
 }
 
 func (v *config) Namespace() string {
@@ -46,4 +47,8 @@ func (v *config) Catch() HandlerFunc {
 
 func (v *config) Doc() string {
 	return v.documentation
+}
+
+func (v *config) Channels() Channels {
+	return v.channels
 }

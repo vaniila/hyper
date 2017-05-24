@@ -10,6 +10,8 @@ type namespace struct {
 	catch         HandlerFunc
 	handlers      []Handler
 	middleware    HandlerFuncs
+	channels      Channels
+	config        NamespaceConfig
 }
 
 func (v *namespace) Alias(ns ...string) Namespace {
@@ -66,17 +68,24 @@ func (v *namespace) Catch(f HandlerFunc) Namespace {
 	return v
 }
 
+func (v *namespace) Channels() Channels {
+	return v.channels
+}
+
 func (v *namespace) Config() NamespaceConfig {
-	c := &config{
-		namespace:     v.namespace,
-		aliases:       v.aliases,
-		name:          v.name,
-		documentation: v.documentation,
-		summary:       v.summary,
-		authorize:     v.authorize,
-		catch:         v.catch,
-		handlers:      v.handlers,
-		middleware:    v.middleware,
+	if v.config == nil {
+		v.config = &config{
+			namespace:     v.namespace,
+			aliases:       v.aliases,
+			name:          v.name,
+			documentation: v.documentation,
+			summary:       v.summary,
+			authorize:     v.authorize,
+			catch:         v.catch,
+			handlers:      v.handlers,
+			middleware:    v.middleware,
+			channels:      v.channels,
+		}
 	}
-	return c
+	return v.config
 }

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/golang/protobuf/proto"
 	"github.com/gorilla/websocket"
 	"github.com/samuelngs/hyper/cache"
 	"github.com/samuelngs/hyper/message"
@@ -16,58 +17,88 @@ type server struct {
 	cache      cache.Service
 	message    message.Service
 	namespaces []Namespace
+	nsmap      map[string]Namespace
 	conns      map[string]Context
+	hookbo     HookFunc
+	hookac     HookFunc
 	sync.RWMutex
 }
 
 func (v *server) Start() error {
+	v.Lock()
+	for _, n := range v.namespaces {
+		c := n.Config()
+		s := c.Namespace()
+		a := c.Aliases()
+		v.nsmap[s] = n
+		for _, i := range a {
+			v.nsmap[i] = n
+		}
+	}
+	v.Unlock()
 	return nil
 }
 
 func (v *server) Stop() error {
+	v.Lock()
+	v.nsmap = make(map[string]Namespace)
+	v.Unlock()
 	return nil
 }
 
-func (v *server) Publish(p Packet) error {
-	b, err := p.Bytes()
+func (v *server) Publish(d *Distribution) error {
+	b, err := proto.Marshal(d)
 	if err != nil {
 		return err
 	}
-	if err := v.message.Emit(v.topic, b); err != nil {
-		return err
-	}
+	return v.message.Emit(v.topic, b)
+}
+
+func (v *server) Subscribe(d *Distribution) error {
 	return nil
 }
 
-func (v *server) Subscribe(p Packet) error {
-	return nil
+func (v *server) BeforeOpen(f HookFunc) {
+	v.hookbo = f
+}
+
+func (v *server) AfterClose(f HookFunc) {
+	v.hookac = f
 }
 
 func (v *server) Handle(r router.Context, n *websocket.Conn) {
 	u := fmt.Sprintf("%s-%s", r.MachineID(), r.ProcessID())
 	c := &connection{
-		machineID: r.MachineID(),
-		processID: r.ProcessID(),
-		ctx:       r.Context(),
-		channels:  make([]Channel, 0),
-		req:       r.Req(),
-		res:       r.Res(),
-		client:    r.Client(),
-		cookie:    r.Cookie(),
-		header:    r.Header(),
-		cache:     v.cache,
-		message:   v.message,
-		server:    v,
-		conn:      n,
+		machineID:     r.MachineID(),
+		processID:     r.ProcessID(),
+		identity:      new(identity),
+		subscriptions: &subscriptions{make([]Channel, 0)},
+		ctx:           r.Context(),
+		req:           r.Req(),
+		res:           r.Res(),
+		client:        r.Client(),
+		cookie:        r.Cookie(),
+		header:        r.Header(),
+		cache:         v.cache,
+		message:       v.message,
+		server:        v,
+		conn:          n,
 	}
-	v.RLock()
+	v.Lock()
 	v.conns[u] = c
-	v.RUnlock()
+	v.Unlock()
+	if v.hookbo != nil {
+		v.hookbo(c)
+	}
 	c.BeforeOpen()
 	defer func() {
-		v.RLock()
+		recover()
+		v.Lock()
 		delete(v.conns, u)
-		v.RUnlock()
+		v.Unlock()
+		if v.hookac != nil {
+			v.hookac(c)
+		}
 		c.AfterClose()
 	}()
 	for {
@@ -75,10 +106,136 @@ func (v *server) Handle(r router.Context, n *websocket.Conn) {
 		if err != nil {
 			break
 		}
-		v.Publish(&packet{
-			T: mt,
-			M: message,
+		v.Read(mt, message, c)
+	}
+}
+
+func (v *server) Read(mt int, message []byte, c Context) {
+	if mt == websocket.BinaryMessage && message != nil && len(message) > 0 {
+		p := &Packet{}
+		// parse protobuf packet
+		if err := proto.Unmarshal(message, p); err != nil {
+			c.Write(&Packet{
+				Action: ActionMessageFailure,
+				Error:  InvalidPacket.Fill().JsonString(),
+			})
+			return
+		}
+		v.RLock()
+		n, ok := v.nsmap[p.GetNamespace()]
+		v.RUnlock()
+		// namespace does not exist, send error
+		if !ok {
+			c.Write(&Packet{
+				Action: ActionMessageFailure,
+				Error:  NamespaceNotExist.Fill(p.GetNamespace()).JsonString(),
+			})
+			return
+		}
+		switch p.GetAction() {
+		case ActionSubscribe:
+			v.HandleSubscribe(p, n, c)
+		case ActionUnsubscribe:
+			v.HandleUnsubscribe(p, n, c)
+		case ActionMessage:
+			v.HandleMessage(p, n, c)
+		default:
+			c.Write(&Packet{
+				Action: ActionMessageFailure,
+				Error:  InvalidAction.Fill(p.GetAction()).JsonString(),
+			})
+		}
+	}
+}
+
+func (v *server) HandleSubscribe(p *Packet, n Namespace, c Context) {
+	// checks if channel is already subscribed
+	if subscribed := c.Subscriptions().Has(p.GetNamespace(), p.GetChannel()); subscribed {
+		c.Write(&Packet{
+			Action: ActionSubscribeFailure,
+			Error:  ChannelAlreadySubscribed.Fill(p.GetNamespace(), p.GetChannel()).JsonString(),
 		})
+		return
+	}
+	if err := n.Config().Authorize()(p.GetChannel(), c); err != nil {
+		c.Write(&Packet{
+			ID:        p.GetID(),
+			Action:    ActionSubscribeFailure,
+			Namespace: p.GetNamespace(),
+			Channel:   p.GetChannel(),
+			Error:     ChannelUnauthorized.Fill(p.GetNamespace(), p.GetChannel()).JsonString(),
+		})
+		return
+	}
+	cs := n.Channels()
+	if !cs.Has(p.GetChannel()) {
+		cs.Add(p.GetChannel())
+	}
+	ch := cs.Get(p.GetChannel())
+	if !ch.Has(c) {
+		ch.Subscribe(c)
+	}
+	c.Write(&Packet{
+		ID:        p.GetID(),
+		Action:    ActionSubscribeSuccessful,
+		Namespace: p.GetNamespace(),
+		Channel:   p.GetChannel(),
+	})
+}
+
+func (v *server) HandleUnsubscribe(p *Packet, n Namespace, c Context) {
+	// checks if channel is not subscribed
+	if subscribed := c.Subscriptions().Has(p.GetNamespace(), p.GetChannel()); !subscribed {
+		c.Write(&Packet{
+			Action: ActionUnsubscribeFailure,
+			Error:  ChannelNotSubscribed.Fill(p.GetNamespace(), p.GetChannel()).JsonString(),
+		})
+		return
+	}
+	cs := n.Channels()
+	if !cs.Has(p.GetChannel()) {
+		return
+	}
+	ch := cs.Get(p.GetChannel())
+	if ch.Has(c) {
+		ch.Unsubscribe(c)
+	}
+	c.Write(&Packet{
+		ID:        p.GetID(),
+		Action:    ActionUnsubscribeSuccessful,
+		Namespace: p.GetNamespace(),
+		Channel:   p.GetChannel(),
+	})
+}
+
+func (v *server) HandleMessage(p *Packet, n Namespace, c Context) {
+	if subscribed := c.Subscriptions().Has(p.GetNamespace(), p.GetChannel()); !subscribed {
+		c.Write(&Packet{
+			Action: ActionMessageFailure,
+			Error:  ChannelNotSubscribed.Fill(p.GetNamespace(), p.GetChannel()).JsonString(),
+		})
+		return
+	}
+	cs := n.Channels()
+	ch := cs.Get(p.GetChannel())
+	defer func() {
+		if err := recover(); err != nil {
+			if f := n.Config().Catch(); f != nil {
+				f(p.GetMessage(), ch, c)
+			}
+		}
+	}()
+	if md := n.Config().Middlewares(); len(md) > 0 {
+		for _, m := range md {
+			m(p.GetMessage(), ch, c)
+		}
+	}
+	if hs := n.Config().Handlers(); len(hs) > 0 {
+		for _, h := range hs {
+			if p.GetCall() == h.Name() {
+				h.Func()(p.GetMessage(), ch, c)
+			}
+		}
 	}
 }
 
@@ -96,6 +253,12 @@ func (v *server) Namespace(s string) Namespace {
 	}
 	n := &namespace{
 		namespace: s,
+		aliases:   make([]string, 0),
+	}
+	n.channels = &channels{
+		namespace: n,
+		channels:  make(map[string]Channel),
+		server:    v,
 	}
 	v.namespaces = append(v.namespaces, n)
 	return n

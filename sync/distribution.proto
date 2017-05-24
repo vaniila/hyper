@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package sync;
+
+import "packet.proto";
+
+message Distribution {
+  Packet Packet = 40;
+  Condition Condition = 50;
+}
+
+message Condition {
+  repeated int64 EqIDs = 10;
+  repeated int64 NeIDs = 11;
+  repeated string EqKeys = 20;
+  repeated string NeKeys = 21;
+}

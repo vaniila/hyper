@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/golang/protobuf/proto"
 	"github.com/gorilla/websocket"
 	"github.com/samuelngs/hyper/router"
 )
@@ -11,7 +12,8 @@ import (
 type connection struct {
 	machineID, processID string
 	ctx                  context.Context
-	channels             []Channel
+	identity             *identity
+	subscriptions        *subscriptions
 	req                  *http.Request
 	res                  http.ResponseWriter
 	client               router.Client
@@ -31,8 +33,12 @@ func (v *connection) ProcessID() string {
 	return v.processID
 }
 
-func (v *connection) Channels() []Channel {
-	return v.channels
+func (v *connection) Identity() Identity {
+	return v.identity
+}
+
+func (v *connection) Subscriptions() Subscriptions {
+	return v.subscriptions
 }
 
 func (v *connection) Context() context.Context {
@@ -67,8 +73,12 @@ func (v *connection) Message() MessageAdaptor {
 	return v.message
 }
 
-func (v *connection) Write(p Packet) error {
-	return v.server.Publish(p)
+func (v *connection) Write(p *Packet) error {
+	b, err := proto.Marshal(p)
+	if err != nil {
+		return err
+	}
+	return v.conn.WriteMessage(websocket.BinaryMessage, b)
 }
 
 func (v *connection) Close() error {
@@ -79,4 +89,13 @@ func (v *connection) BeforeOpen() {
 }
 
 func (v *connection) AfterClose() {
+	// clean up channels
+	// close channels that has no subscribers in it
+	for _, c := range v.Subscriptions().List() {
+		c.Unsubscribe(v)
+		l := len(c.NodeSubscribers())
+		if l == 0 {
+			c.Namespace().Channels().Del(c.Name())
+		}
+	}
 }

@@ -9,11 +9,14 @@ import (
 	"github.com/samuelngs/hyper/router"
 )
 
+// HookFunc
+type HookFunc func(Context)
+
 // AuthorizeFunc
-type AuthorizeFunc func(Context) error
+type AuthorizeFunc func(string, Context) error
 
 // HandlerFunc type
-type HandlerFunc func([]byte, Context)
+type HandlerFunc func([]byte, Channel, Context)
 
 // HandlerFuncs type
 type HandlerFuncs []HandlerFunc
@@ -30,9 +33,11 @@ type Service interface {
 	Stop() error
 	Namespace(string) Namespace
 	Namespaces() []Namespace
-	Publish(Packet) error
-	Subscribe(Packet) error
+	Publish(*Distribution) error
+	Subscribe(*Distribution) error
 	Handle(router.Context, *websocket.Conn)
+	BeforeOpen(HookFunc)
+	AfterClose(HookFunc)
 	String() string
 }
 
@@ -46,6 +51,7 @@ type Namespace interface {
 	Middleware(...HandlerFunc) Namespace
 	Handle(string, HandlerFunc) Namespace
 	Catch(HandlerFunc) Namespace
+	Channels() Channels
 	Config() NamespaceConfig
 }
 
@@ -58,45 +64,69 @@ type NamespaceConfig interface {
 	Middlewares() []HandlerFunc
 	Handlers() []Handler
 	Catch() HandlerFunc
+	Channels() Channels
 	Doc() string
 }
 
-// Packet interface
-type Packet interface {
-	Direction() int
-	Type() int
-	Namespace() string
-	Channel() string
-	Message() []byte
-	Bytes() ([]byte, error)
+type Channels interface {
+	Namespace() Namespace
+	Has(string) bool
+	Get(string) Channel
+	Add(string) Channels
+	Del(string) Channels
+	List() map[string]Channel
+	Len() int
 }
 
 // Channel interface
 type Channel interface {
 	Namespace() Namespace
 	Name() string
-	Subscribed() bool
+	NodeSubscribers() []Context
+	Has(Context) bool
+	Subscribe(Context) Channel
+	Unsubscribe(Context) Channel
+	Write(*Packet, ...*Condition) error
 	BeforeOpen()
 	AfterClose()
 }
 
 // Context interface
 type Context interface {
+	Identity() Identity
 	MachineID() string
 	ProcessID() string
-	Channels() []Channel
 	Context() context.Context
 	Req() *http.Request
 	Res() http.ResponseWriter
 	Client() router.Client
 	Cookie() router.Cookie
 	Header() router.Header
+	Subscriptions() Subscriptions
 	Cache() CacheAdaptor
 	Message() MessageAdaptor
-	Write(Packet) error
+	Write(*Packet) error
 	Close() error
 	BeforeOpen()
 	AfterClose()
+}
+
+// Identity interface
+type Identity interface {
+	HasID() bool
+	GetID() int
+	SetID(int)
+	HasKey() bool
+	GetKey() string
+	SetKey(string)
+}
+
+// Subscriptions interface
+type Subscriptions interface {
+	Has(string, string) bool
+	Add(Channel) Subscriptions
+	Del(Channel) Subscriptions
+	List() []Channel
 }
 
 // Cache interface
@@ -120,6 +150,7 @@ func New(opts ...Option) Service {
 		cache:      o.Cache,
 		message:    o.Message,
 		namespaces: make([]Namespace, 0),
+		nsmap:      make(map[string]Namespace),
 		conns:      make(map[string]Context),
 	}
 	return s
