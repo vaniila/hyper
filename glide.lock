@@ -1,6 +1,11 @@
-hash: 2494cacbb07de764a001e86761e2f670a8e353f36c47f0c03048bf38da069b98
-updated: 2017-05-21T01:06:25.548646584-06:00
+hash: 9325b60f84fcdbd1c56d94c0563a652fc58090ebf5b428603962825d33a1dc7f
+updated: 2017-05-23T02:59:35.801585365-06:00
 imports:
+- name: github.com/golang/protobuf
+  version: 7a211bcf3bce0e3f1d74f9894916e6f116ae83b4
+  subpackages:
+  - proto
+  - protoc-gen-go
 - name: github.com/gorilla/websocket
   version: 3ab3a8b8831546bd18fd182c20687ca853b2bb13
 - name: github.com/pressly/chi

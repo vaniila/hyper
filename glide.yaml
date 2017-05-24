@@ -7,3 +7,8 @@ import:
 - package: github.com/ua-parser/uap-go
   subpackages:
   - uaparser
+- package: github.com/golang/protobuf
+  version: 7a211bcf3bce0e3f1d74f9894916e6f116ae83b4
+  subpackages:
+  - proto
+  - protoc-gen-go
