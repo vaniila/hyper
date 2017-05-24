@@ -16,6 +16,7 @@ type Context interface {
 	SetStatus(int) Context
 	AddCause(...Cause) Context
 	Json() []byte
+	JsonString() string
 }
 
 // Cause interface

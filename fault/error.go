@@ -56,8 +56,13 @@ func (v *Fault) Error() string {
 	return v.FMessage
 }
 
-// Json to return json string of the error
+// Json to return json bytes of the error
 func (v *Fault) Json() []byte {
 	b, _ := json.Marshal(v)
 	return b
+}
+
+// JsonString to return json string of the error
+func (v *Fault) JsonString() string {
+	return string(v.Json()[:])
 }
