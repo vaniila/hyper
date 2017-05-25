@@ -17,6 +17,7 @@ func TestNew(t *testing.T) {
 	ws := h.Sync()
 
 	ws.BeforeOpen(func(c sync.Context) {
+		c.Identity().SetID(100)
 	})
 
 	ws.AfterClose(func(c sync.Context) {
@@ -33,8 +34,7 @@ func TestNew(t *testing.T) {
 		Middleware(func(m []byte, n sync.Channel, c sync.Context) {
 		}).
 		Handle("ping", func(m []byte, n sync.Channel, c sync.Context) {
-		}).
-		Handle("pong", func(m []byte, n sync.Channel, c sync.Context) {
+			n.Write(&sync.Packet{Message: []byte{49, 50, 51}})
 		}).
 		Catch(func(m []byte, n sync.Channel, c sync.Context) {
 		})

@@ -53,6 +53,18 @@ func (v *channel) Write(p *Packet, s ...*Condition) error {
 		c = i
 		break
 	}
+	if p == nil {
+		return nil
+	}
+	if p.Namespace == "" {
+		p.Namespace = v.namespace.Config().Namespace()
+	}
+	if p.Channel == "" {
+		p.Channel = v.name
+	}
+	if p.Action == ActionUnknown {
+		p.Action = ActionMessage
+	}
 	d := &Distribution{
 		Packet:    p,
 		Condition: c,

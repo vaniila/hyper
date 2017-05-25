@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/samuelngs/hyper/message"
 	"github.com/samuelngs/hyper/router/cookie"
 	"github.com/samuelngs/hyper/tracer"
 )
@@ -53,7 +54,7 @@ type CacheAdaptor interface {
 // MessageAdaptor broker interface
 type MessageAdaptor interface {
 	Emit([]byte, []byte) error
-	Listen([]byte) (<-chan []byte, chan<- struct{}, error)
+	Listen([]byte, message.Handler) message.Close
 }
 
 // Value interface

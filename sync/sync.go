@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
+	"github.com/samuelngs/hyper/message"
 	"github.com/samuelngs/hyper/router"
 )
 
@@ -138,7 +139,7 @@ type CacheAdaptor interface {
 // Message broker interface
 type MessageAdaptor interface {
 	Emit([]byte, []byte) error
-	Listen([]byte) (<-chan []byte, chan<- struct{}, error)
+	Listen([]byte, message.Handler) message.Close
 }
 
 // New creates engine server

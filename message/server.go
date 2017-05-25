@@ -1,54 +1,46 @@
 package message
 
-type event struct {
-	channel []byte
-	message []byte
+type handler struct {
+	name string
+	fn   Handler
 }
 
 type server struct {
-	id     string
-	events chan *event
+	id       string
+	handlers []*handler
 }
 
 func (v *server) Start() error {
-	v.events = make(chan *event)
 	return nil
 }
 
 func (v *server) Stop() error {
-	close(v.events)
 	return nil
 }
 
 func (v *server) Emit(channel, message []byte) error {
-	e := &event{
-		channel: channel,
-		message: message,
+	name := string(channel[:])
+	for _, handle := range v.handlers {
+		if string(handle.name[:]) == name {
+			handle.fn(message)
+		}
 	}
-	v.events <- e
 	return nil
 }
 
-func (v *server) Listen(channel []byte) (<-chan []byte, chan<- struct{}, error) {
-	c := make(chan []byte)
-	s := make(chan struct{})
-	go func() {
-		defer func() {
-			close(c)
-			close(s)
-		}()
-		for {
-			select {
-			case b := <-v.events:
-				if b != nil && string(b.channel[:]) == string(channel[:]) {
-					c <- b.message
-				}
-			case <-s:
-				break
+func (v *server) Listen(channel []byte, fn Handler) Close {
+	hr := &handler{
+		name: string(channel[:]),
+		fn:   fn,
+	}
+	v.handlers = append(v.handlers, hr)
+	return func() {
+		for i, h := range v.handlers {
+			if hr == h {
+				v.handlers = append(v.handlers[:i], v.handlers[i+1:]...)
 			}
 		}
-	}()
-	return c, s, nil
+	}
 }
 
 func (v *server) String() string {

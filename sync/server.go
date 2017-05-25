@@ -21,6 +21,7 @@ type server struct {
 	conns      map[string]Context
 	hookbo     HookFunc
 	hookac     HookFunc
+	stop       message.Close
 	sync.RWMutex
 }
 
@@ -36,6 +37,15 @@ func (v *server) Start() error {
 		}
 	}
 	v.Unlock()
+	go func() {
+		v.stop = v.message.Listen(v.topic, func(b []byte) {
+			d := &Distribution{}
+			if err := proto.Unmarshal(b, d); err != nil {
+				return
+			}
+			v.Subscribe(d)
+		})
+	}()
 	return nil
 }
 
@@ -43,6 +53,7 @@ func (v *server) Stop() error {
 	v.Lock()
 	v.nsmap = make(map[string]Namespace)
 	v.Unlock()
+	v.stop()
 	return nil
 }
 
@@ -55,6 +66,19 @@ func (v *server) Publish(d *Distribution) error {
 }
 
 func (v *server) Subscribe(d *Distribution) error {
+	if d.Packet == nil {
+		return InvalidPacket.Fill()
+	}
+	n := v.Namespace(d.Packet.GetNamespace())
+	cs := n.Channels()
+	if !cs.Has(d.Packet.GetChannel()) {
+		return ChannelNotExist.Fill(d.Packet.GetChannel())
+	}
+	ch := cs.Get(d.Packet.GetChannel())
+	ns := ch.NodeSubscribers()
+	for _, c := range ns {
+		c.Write(d.Packet)
+	}
 	return nil
 }
 
