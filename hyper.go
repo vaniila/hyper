@@ -14,6 +14,7 @@ func New(opts ...Option) *Hyper {
 		websocket.Cache(o.Cache),
 		websocket.Message(o.Message),
 		websocket.Router(o.Router),
+		websocket.EnableCompression(true),
 	)
 	e := engine.New(
 		engine.ID(o.ID),
