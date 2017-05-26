@@ -18,6 +18,7 @@ type HandlerFuncs []HandlerFunc
 
 // Context interface
 type Context interface {
+	Identity() Identity
 	MachineID() string
 	ProcessID() string
 	Context() context.Context
@@ -43,6 +44,16 @@ type Context interface {
 	Error(error) Context
 	Json(o interface{}) Context
 	Status(code int) Context
+}
+
+// Identity interface
+type Identity interface {
+	HasID() bool
+	GetID() int
+	SetID(int)
+	HasKey() bool
+	GetKey() string
+	SetKey(string)
 }
 
 // CacheAdaptor interface

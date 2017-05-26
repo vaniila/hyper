@@ -39,6 +39,7 @@ func (v *server) handler(conf router.RouteConfig) func(http.ResponseWriter, *htt
 			machineID: v.id,
 			processID: newID(),
 			ctx:       r.Context(),
+			identity:  new(identity),
 			req:       r,
 			res:       w,
 			client:    client,

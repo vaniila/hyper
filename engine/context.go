@@ -14,6 +14,7 @@ import (
 type Context struct {
 	machineID, processID string
 	ctx                  context.Context
+	identity             *identity
 	req                  *http.Request
 	res                  http.ResponseWriter
 	client               router.Client
@@ -29,7 +30,7 @@ type Context struct {
 	recover              error
 }
 
-func (v Context) MachineID() string {
+func (v *Context) MachineID() string {
 	return v.machineID
 }
 
@@ -39,6 +40,10 @@ func (v *Context) ProcessID() string {
 
 func (v *Context) Context() context.Context {
 	return v.ctx
+}
+
+func (v *Context) Identity() router.Identity {
+	return v.identity
 }
 
 func (v *Context) Req() *http.Request {
