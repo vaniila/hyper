@@ -1,7 +1,9 @@
 package message
 
+import "bytes"
+
 type handler struct {
-	name string
+	name []byte
 	fn   Handler
 }
 
@@ -19,9 +21,8 @@ func (v *server) Stop() error {
 }
 
 func (v *server) Emit(channel, message []byte) error {
-	name := string(channel[:])
 	for _, handle := range v.handlers {
-		if string(handle.name[:]) == name {
+		if bytes.Equal(handle.name, channel) {
 			handle.fn(message)
 		}
 	}
@@ -30,7 +31,7 @@ func (v *server) Emit(channel, message []byte) error {
 
 func (v *server) Listen(channel []byte, fn Handler) Close {
 	hr := &handler{
-		name: string(channel[:]),
+		name: channel,
 		fn:   fn,
 	}
 	v.handlers = append(v.handlers, hr)
