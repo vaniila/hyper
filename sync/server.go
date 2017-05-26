@@ -181,15 +181,17 @@ func (v *server) HandleSubscribe(p *Packet, n Namespace, c Context) {
 		})
 		return
 	}
-	if err := n.Config().Authorize()(p.GetChannel(), c); err != nil {
-		c.Write(&Packet{
-			ID:        p.GetID(),
-			Action:    ActionSubscribeFailure,
-			Namespace: p.GetNamespace(),
-			Channel:   p.GetChannel(),
-			Error:     ChannelUnauthorized.Fill(p.GetNamespace(), p.GetChannel()).JsonString(),
-		})
-		return
+	if fn := n.Config().Authorize(); fn != nil {
+		if err := fn(p.GetChannel(), c); err != nil {
+			c.Write(&Packet{
+				ID:        p.GetID(),
+				Action:    ActionSubscribeFailure,
+				Namespace: p.GetNamespace(),
+				Channel:   p.GetChannel(),
+				Error:     ChannelUnauthorized.Fill(p.GetNamespace(), p.GetChannel()).JsonString(),
+			})
+			return
+		}
 	}
 	cs := n.Channels()
 	if !cs.Has(p.GetChannel()) {
