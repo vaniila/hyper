@@ -6,6 +6,7 @@ import "github.com/samuelngs/hyper/fault"
 var (
 	InvalidPacket     = fault.Format("packet is Invalid")
 	InvalidAction     = fault.Format("action [%d] is Invalid")
+	InvalidCondition  = fault.Format("condition [%s] is Invalid")
 	NamespaceNotExist = fault.Format("namespace %s does not exist")
 
 	ChannelUnauthorized      = fault.Format("no access permission to `%s:%s`")

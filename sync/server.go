@@ -76,6 +76,53 @@ func (v *server) Subscribe(d *Distribution) error {
 	}
 	ch := cs.Get(d.Packet.GetChannel())
 	ns := ch.NodeSubscribers()
+	if d.Condition != nil {
+		if (len(d.Condition.EqIDs) > 0 || len(d.Condition.EqKeys) > 0) && (len(d.Condition.NeIDs) > 0 || len(d.Condition.NeKeys) > 0) {
+			return InvalidCondition.Fill(d.Condition)
+		}
+		if len(d.Condition.EqIDs) > 0 || len(d.Condition.EqKeys) > 0 {
+			im := make(map[int64]struct{})
+			km := make(map[string]struct{})
+			for _, i := range d.Condition.EqIDs {
+				im[i] = struct{}{}
+			}
+			for _, k := range d.Condition.EqKeys {
+				km[k] = struct{}{}
+			}
+			for _, c := range ns {
+				if _, ok := im[int64(c.Identity().GetID())]; ok && c.Identity().HasID() {
+					c.Write(d.Packet)
+					continue
+				}
+				if _, ok := km[c.Identity().GetKey()]; ok && c.Identity().HasKey() {
+					c.Write(d.Packet)
+					continue
+				}
+			}
+			return nil
+		}
+		if len(d.Condition.NeIDs) > 0 || len(d.Condition.NeKeys) > 0 {
+			im := make(map[int64]struct{})
+			km := make(map[string]struct{})
+			for _, i := range d.Condition.NeIDs {
+				im[i] = struct{}{}
+			}
+			for _, k := range d.Condition.NeKeys {
+				km[k] = struct{}{}
+			}
+			for _, c := range ns {
+				if _, ok := im[int64(c.Identity().GetID())]; !ok && c.Identity().HasID() {
+					c.Write(d.Packet)
+					continue
+				}
+				if _, ok := km[c.Identity().GetKey()]; !ok && c.Identity().HasKey() {
+					c.Write(d.Packet)
+					continue
+				}
+			}
+			return nil
+		}
+	}
 	for _, c := range ns {
 		c.Write(d.Packet)
 	}

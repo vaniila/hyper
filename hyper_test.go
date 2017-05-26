@@ -34,7 +34,12 @@ func TestNew(t *testing.T) {
 		Middleware(func(m []byte, n sync.Channel, c sync.Context) {
 		}).
 		Handle("ping", func(m []byte, n sync.Channel, c sync.Context) {
-			n.Write(&sync.Packet{Message: []byte{49, 50, 51}})
+			n.Write(
+				&sync.Packet{Message: []byte{49, 50, 51}},
+				&sync.Condition{
+					NeIDs: []int64{101},
+				},
+			)
 		}).
 		Catch(func(m []byte, n sync.Channel, c sync.Context) {
 		})
