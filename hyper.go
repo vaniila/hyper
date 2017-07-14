@@ -1,8 +1,8 @@
 package hyper
 
 import (
-	"github.com/samuelngs/hyper/engine"
-	"github.com/samuelngs/hyper/websocket"
+	"github.com/vaniila/hyper/engine"
+	"github.com/vaniila/hyper/websocket"
 )
 
 // New creates a hyper server

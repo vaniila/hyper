@@ -5,12 +5,12 @@ import (
 
 	"github.com/pressly/chi"
 	"github.com/pressly/chi/middleware"
-	"github.com/samuelngs/hyper/cache"
-	"github.com/samuelngs/hyper/fault"
-	"github.com/samuelngs/hyper/message"
-	"github.com/samuelngs/hyper/router"
-	"github.com/samuelngs/hyper/websocket"
 	"github.com/ua-parser/uap-go/uaparser"
+	"github.com/vaniila/hyper/cache"
+	"github.com/vaniila/hyper/fault"
+	"github.com/vaniila/hyper/message"
+	"github.com/vaniila/hyper/router"
+	"github.com/vaniila/hyper/websocket"
 
 	"golang.org/x/net/http2"
 

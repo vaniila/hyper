@@ -6,7 +6,7 @@ import (
 
 	"github.com/golang/protobuf/proto"
 	"github.com/gorilla/websocket"
-	"github.com/samuelngs/hyper/router"
+	"github.com/vaniila/hyper/router"
 )
 
 type connection struct {

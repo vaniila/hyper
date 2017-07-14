@@ -6,9 +6,9 @@ import (
 
 	"github.com/golang/protobuf/proto"
 	"github.com/gorilla/websocket"
-	"github.com/samuelngs/hyper/cache"
-	"github.com/samuelngs/hyper/message"
-	"github.com/samuelngs/hyper/router"
+	"github.com/vaniila/hyper/cache"
+	"github.com/vaniila/hyper/message"
+	"github.com/vaniila/hyper/router"
 )
 
 type server struct {

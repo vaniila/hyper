@@ -3,9 +3,9 @@ package engine
 import (
 	"net/http"
 
-	"github.com/samuelngs/hyper/fault"
-	"github.com/samuelngs/hyper/router"
-	"github.com/samuelngs/hyper/router/cookie"
+	"github.com/vaniila/hyper/fault"
+	"github.com/vaniila/hyper/router"
+	"github.com/vaniila/hyper/router/cookie"
 )
 
 // Cookie struct

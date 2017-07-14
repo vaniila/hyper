@@ -3,8 +3,8 @@ package engine
 import (
 	"net/http"
 
-	"github.com/samuelngs/hyper/fault"
-	"github.com/samuelngs/hyper/router"
+	"github.com/vaniila/hyper/fault"
+	"github.com/vaniila/hyper/router"
 )
 
 // Header struct

@@ -6,12 +6,12 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/samuelngs/hyper/cache"
-	"github.com/samuelngs/hyper/engine"
-	"github.com/samuelngs/hyper/message"
-	"github.com/samuelngs/hyper/router"
-	"github.com/samuelngs/hyper/sync"
-	"github.com/samuelngs/hyper/websocket"
+	"github.com/vaniila/hyper/cache"
+	"github.com/vaniila/hyper/engine"
+	"github.com/vaniila/hyper/message"
+	"github.com/vaniila/hyper/router"
+	"github.com/vaniila/hyper/sync"
+	"github.com/vaniila/hyper/websocket"
 )
 
 // Hyper service

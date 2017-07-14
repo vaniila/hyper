@@ -3,8 +3,8 @@ package hyper
 import (
 	"testing"
 
-	"github.com/samuelngs/hyper/router"
-	"github.com/samuelngs/hyper/sync"
+	"github.com/vaniila/hyper/router"
+	"github.com/vaniila/hyper/sync"
 )
 
 func TestNew(t *testing.T) {

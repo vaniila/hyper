@@ -4,8 +4,8 @@ import (
 	"crypto/rand"
 	"fmt"
 
-	"github.com/samuelngs/hyper/cache"
-	"github.com/samuelngs/hyper/message"
+	"github.com/vaniila/hyper/cache"
+	"github.com/vaniila/hyper/message"
 )
 
 // Option func

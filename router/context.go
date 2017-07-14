@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/samuelngs/hyper/message"
-	"github.com/samuelngs/hyper/router/cookie"
-	"github.com/samuelngs/hyper/tracer"
+	"github.com/vaniila/hyper/message"
+	"github.com/vaniila/hyper/router/cookie"
+	"github.com/vaniila/hyper/tracer"
 )
 
 // HandlerFunc type

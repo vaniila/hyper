@@ -1,6 +1,6 @@
 package sync
 
-import "github.com/samuelngs/hyper/fault"
+import "github.com/vaniila/hyper/fault"
 
 // sync errors
 var (

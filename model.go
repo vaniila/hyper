@@ -1,6 +1,6 @@
 package hyper
 
-import "github.com/samuelngs/hyper/router"
+import "github.com/vaniila/hyper/router"
 
 type model struct {
 	code int

@@ -2,7 +2,7 @@ package websocket
 
 import (
 	"github.com/gorilla/websocket"
-	"github.com/samuelngs/hyper/router"
+	"github.com/vaniila/hyper/router"
 )
 
 // Service interface

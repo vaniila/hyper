@@ -5,10 +5,10 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/samuelngs/hyper/fault"
-	"github.com/samuelngs/hyper/router"
-	"github.com/samuelngs/hyper/tracer"
 	"github.com/ua-parser/uap-go/uaparser"
+	"github.com/vaniila/hyper/fault"
+	"github.com/vaniila/hyper/router"
+	"github.com/vaniila/hyper/tracer"
 )
 
 type Context struct {

@@ -3,7 +3,7 @@ package cache
 import (
 	"time"
 
-	"github.com/samuelngs/hyper/cache/default"
+	"github.com/vaniila/hyper/cache/default"
 )
 
 type server struct {
