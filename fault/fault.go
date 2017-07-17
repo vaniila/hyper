@@ -77,7 +77,3 @@ func Is(e error) (Context, bool) {
 	v, ok := e.(Context)
 	return v, ok
 }
-
-// Match error
-func Match() {
-}

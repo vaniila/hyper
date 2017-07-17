@@ -46,16 +46,43 @@ func TestNew(t *testing.T) {
 
 	ro := h.Router()
 
-	ro.Get("/").
+	te := ro.Namespace("/test").
+		Alias("/test2").
+		Params(
+			Query("name1").
+				Format(Text).
+				Doc(`namespace doc 1`).
+				Summary(`namespace summary 1`).
+				Default([]byte("Sam")).
+				Require(false),
+		).
+		Middleware(func(c router.Context) {
+		})
+
+	ha := te.Namespace("/test").
+		Alias("/test2").
+		Params(
+			Query("name2").
+				Format(Text).
+				Doc(`namespace doc 2`).
+				Summary(`namespace summary 2`).
+				Default([]byte("Sam")).
+				Require(false),
+		).
+		Middleware(func(c router.Context) {
+		})
+
+	ha.Get("/").
 		Alias("/test").
 		Name("TestIndex").
 		Doc(`Test index page`).
 		Summary(`Test index page`).
 		Params(
 			Query("greeting").
+				Format(URL).
 				Doc(`The greeting message`).
 				Summary(`The greeting message`).
-				Default([]byte("Hello")).
+				Default([]byte("")).
 				Require(false),
 		).
 		Models(
@@ -68,9 +95,6 @@ func TestNew(t *testing.T) {
 		Handle(func(c router.Context) {
 			c.Write(c.MustQuery("greeting").Val())
 			c.Write([]byte("!"))
-		}).
-		Catch(func(c router.Context) {
-			c.Error(c.Recover())
 		})
 
 	h.Run()

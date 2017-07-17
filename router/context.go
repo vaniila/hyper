@@ -72,6 +72,16 @@ type MessageAdaptor interface {
 type Value interface {
 	Key() string
 	Val() []byte
+	Has() bool
+	MustInt() int
+	MustI32() int32
+	MustI64() int64
+	MustU32() uint32
+	MustU64() uint64
+	MustF32() float32
+	MustF64() float64
+	MustBool() bool
+	MustTime() time.Time
 	String() string
 }
 

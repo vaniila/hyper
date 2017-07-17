@@ -31,6 +31,7 @@ type Route interface {
 	Summary(string) Route
 	Doc(string) Route
 	Params(...Param) Route
+	MaxMemory(int64) Route
 	Handle(HandlerFunc) Route
 	Catch(HandlerFunc) Route
 	Middleware(...HandlerFunc) Route
@@ -52,6 +53,7 @@ type RouteConfig interface {
 	Websocket() bool
 	HTTP() bool
 	Params() []Param
+	MaxMemory() int64
 	Routes() []Route
 	Handler() HandlerFunc
 	Catch() HandlerFunc
@@ -61,7 +63,7 @@ type RouteConfig interface {
 
 // Param interface
 type Param interface {
-	Format(DataFormat) Param
+	Format(int) Param
 	Summary(string) Param
 	Doc(string) Param
 	Default([]byte) Param
@@ -73,7 +75,7 @@ type Param interface {
 type ParamConfig interface {
 	Name() string
 	Type() ParamType
-	Format() DataFormat
+	Format() int
 	Summary() string
 	Doc() string
 	Default() []byte

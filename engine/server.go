@@ -15,6 +15,7 @@ import (
 	"golang.org/x/net/http2"
 
 	"net/http"
+	"net/textproto"
 )
 
 type server struct {
@@ -62,30 +63,57 @@ func (v *server) handler(conf router.RouteConfig) func(http.ResponseWriter, *htt
 				c.recover = err
 				if catch := conf.Catch(); catch != nil {
 					catch(c)
+				} else {
+					c.Error(c.recover)
 				}
 			}
 		}()
 		var warnings []fault.Cause
+		switch r.Method {
+		case "PUT", "POST", "PATCH", "CONNECT":
+			r.ParseMultipartForm(conf.MaxMemory())
+		}
 		for _, pa := range conf.Params() {
 			conf := pa.Config()
 			data := &Value{
 				typ: conf.Type(),
 				key: conf.Name(),
+				fmt: conf.Format(),
 			}
 			switch conf.Type() {
 			case router.ParamBody:
-				data.val = []byte(r.FormValue(conf.Name()))
+				if vs := r.Form[conf.Name()]; len(vs) > 0 {
+					data.val = []byte(vs[0])
+					data.has = true
+				} else if vs := r.PostForm[conf.Name()]; len(vs) > 0 {
+					data.val = []byte(vs[0])
+					data.has = true
+				}
 			case router.ParamParam:
 				data.val = []byte(chi.URLParam(r, conf.Name()))
+				data.has = true
 			case router.ParamQuery:
-				data.val = []byte(r.URL.Query().Get(conf.Name()))
+				if queries := r.URL.Query(); queries != nil {
+					if vs, ok := queries[conf.Name()]; ok && len(vs) > 0 {
+						data.val = []byte(vs[0])
+						data.has = true
+					}
+				}
 			case router.ParamHeader:
-				data.val = []byte(r.Header.Get(conf.Name()))
+				if headers := textproto.MIMEHeader(r.Header); headers != nil {
+					if vs, ok := headers[conf.Name()]; ok && len(vs) > 0 {
+						data.val = []byte(vs[0])
+						data.has = true
+					}
+				}
 			case router.ParamCookie:
-				if cookie, err := r.Cookie(conf.Name()); err != nil {
-					data.val = make([]byte, 0)
-				} else {
-					data.val = []byte(cookie.Value)
+				if cookies := r.Cookies(); cookies != nil {
+					for _, c := range cookies {
+						if c != nil && c.Name == conf.Name() {
+							data.val = []byte(c.Value)
+							data.has = true
+						}
+					}
 				}
 			}
 			if len(data.val) == 0 || data.val == nil {
@@ -98,11 +126,22 @@ func (v *server) handler(conf router.RouteConfig) func(http.ResponseWriter, *htt
 				}
 				data.val = conf.Default()
 			}
+			if len(data.val) != 0 && data.val != nil {
+				if parsed, ok := router.Val(conf.Format(), data.val); ok {
+					data.parsed = parsed
+				} else {
+					warning := fault.
+						For(fault.Invalid).
+						SetResource(conf.Type().String()).
+						SetField(conf.Name())
+					warnings = append(warnings, warning)
+				}
+			}
 			c.values = append(c.values, data)
 		}
 		if len(warnings) > 0 {
 			err := fault.
-				New("Validation Failed").
+				New("Unprocessable Entity").
 				SetStatus(http.StatusUnprocessableEntity).
 				AddCause(warnings...)
 			panic(err)
@@ -125,6 +164,9 @@ func (v *server) buildRoutes(mux *chi.Mux, routes []router.Route) {
 			r := chi.NewRouter()
 			v.buildRoutes(r, conf.Routes())
 			mux.Mount(conf.Pattern(), r)
+			for _, alias := range conf.Aliases() {
+				mux.Mount(alias, r)
+			}
 		case conf.Method() == "GET":
 			mux.Get(conf.Pattern(), v.handler(conf))
 			for _, alias := range conf.Aliases() {
@@ -196,6 +238,8 @@ func (v *server) Start() error {
 	mux.Use(middleware.RequestID)
 	mux.Use(middleware.RealIP)
 	mux.Use(middleware.Recoverer)
+	mux.Use(middleware.DefaultCompress)
+	mux.Use(middleware.Heartbeat("/healthz"))
 	v.buildRoutes(mux, v.router.Routes())
 
 	// create http server

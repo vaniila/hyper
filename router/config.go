@@ -12,6 +12,7 @@ type config struct {
 	documentation string
 	summary       string
 	params        []Param
+	memory        int64
 	middleware    HandlerFuncs
 	handler       HandlerFunc
 	catch         HandlerFunc
@@ -56,6 +57,10 @@ func (v *config) HTTP() bool {
 
 func (v *config) Params() []Param {
 	return v.params
+}
+
+func (v *config) MaxMemory() int64 {
+	return v.memory
 }
 
 func (v *config) Routes() []Route {

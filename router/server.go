@@ -1,5 +1,9 @@
 package router
 
+const (
+	defaultMaxMemory = 32 << 20 // 32 MB
+)
+
 type server struct {
 	id     string
 	routes []Route
@@ -19,6 +23,7 @@ func (v *server) add(pat, method string) Route {
 		method: method,
 		ws:     true,
 		http:   true,
+		memory: defaultMaxMemory,
 	}
 	v.routes = append(v.routes, r)
 	return r
@@ -56,6 +61,7 @@ func (v *server) Namespace(pat string) Route {
 	r := &router{
 		pat:       pat,
 		namespace: true,
+		memory:    defaultMaxMemory,
 	}
 	v.routes = append(v.routes, r)
 	return r

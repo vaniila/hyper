@@ -53,7 +53,7 @@ func (v *Fault) ErrorOrNil() error {
 }
 
 func (v *Fault) Error() string {
-	return v.FMessage
+	return v.JsonString()
 }
 
 // Json to return json bytes of the error
