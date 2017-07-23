@@ -34,3 +34,38 @@ func Path(s string) Option {
 		o.Path = s
 	}
 }
+
+// Domain to set cookie domain
+func Domain(s string) Option {
+	return func(o *Options) {
+		o.Domain = s
+	}
+}
+
+// Expires to set cookie expire date
+func Expires(t time.Time) Option {
+	return func(o *Options) {
+		o.Expires = t
+	}
+}
+
+// MaxAge to set cookie maxage
+func MaxAge(i int) Option {
+	return func(o *Options) {
+		o.MaxAge = i
+	}
+}
+
+// Secure to set cookie secure
+func Secure(b bool) Option {
+	return func(o *Options) {
+		o.Secure = b
+	}
+}
+
+// HttpOnly to set cookie http only
+func HttpOnly(b bool) Option {
+	return func(o *Options) {
+		o.HttpOnly = b
+	}
+}
