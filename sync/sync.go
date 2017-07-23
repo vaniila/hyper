@@ -120,6 +120,9 @@ type Identity interface {
 	HasKey() bool
 	GetKey() string
 	SetKey(string)
+	HasMachine() bool
+	GetMachine() string
+	SetMachine(string)
 }
 
 // Subscriptions interface

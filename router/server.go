@@ -5,8 +5,10 @@ const (
 )
 
 type server struct {
-	id     string
-	routes []Route
+	id                   string
+	notfound, notallowed HandlerFunc
+	middleware           HandlerFuncs
+	routes               []Route
 }
 
 func (v *server) Start() error {
@@ -18,12 +20,17 @@ func (v *server) Stop() error {
 }
 
 func (v *server) add(pat, method string) Route {
+	var middleware HandlerFuncs
+	if l := len(v.middleware); l > 0 {
+		middleware = append(middleware, v.middleware...)
+	}
 	r := &router{
-		pat:    pat,
-		method: method,
-		ws:     true,
-		http:   true,
-		memory: defaultMaxMemory,
+		pat:        pat,
+		method:     method,
+		ws:         true,
+		http:       true,
+		memory:     defaultMaxMemory,
+		middleware: middleware,
 	}
 	v.routes = append(v.routes, r)
 	return r
@@ -58,13 +65,41 @@ func (v *server) Delete(pat string) Route {
 }
 
 func (v *server) Namespace(pat string) Route {
+	var middleware HandlerFuncs
+	if l := len(v.middleware); l > 0 {
+		middleware = append(middleware, v.middleware...)
+	}
 	r := &router{
-		pat:       pat,
-		namespace: true,
-		memory:    defaultMaxMemory,
+		pat:        pat,
+		namespace:  true,
+		memory:     defaultMaxMemory,
+		middleware: middleware,
 	}
 	v.routes = append(v.routes, r)
 	return r
+}
+
+func (v *server) NotFound(h HandlerFunc) Service {
+	v.notfound = h
+	return v
+}
+
+func (v *server) MethodNotAllowed(h HandlerFunc) Service {
+	v.notallowed = h
+	return v
+}
+
+func (v *server) Middleware(h ...HandlerFunc) Service {
+	v.middleware = append(v.middleware, h...)
+	return v
+}
+
+func (v *server) RouteNotFound() HandlerFunc {
+	return v.notfound
+}
+
+func (v *server) RouteNotAllowed() HandlerFunc {
+	return v.notallowed
 }
 
 func (v *server) Routes() []Route {

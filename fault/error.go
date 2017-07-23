@@ -4,8 +4,8 @@ import "encoding/json"
 
 // Fault struct
 type Fault struct {
-	FID      string  `json:"-"`
-	FStatus  int     `json:"-"`
+	FID      string  `json:"id"`
+	FStatus  int     `json:"status"`
 	FMessage string  `json:"message"`
 	FCauses  []Cause `json:"causes"`
 }

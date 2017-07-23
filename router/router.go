@@ -12,6 +12,11 @@ type Service interface {
 	Patch(string) Route
 	Delete(string) Route
 	Namespace(string) Route
+	NotFound(HandlerFunc) Service
+	MethodNotAllowed(HandlerFunc) Service
+	Middleware(...HandlerFunc) Service
+	RouteNotFound() HandlerFunc
+	RouteNotAllowed() HandlerFunc
 	Routes() []Route
 	String() string
 }
