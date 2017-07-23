@@ -1,9 +1,9 @@
 package engine
 
 type identity struct {
-	hasid, haskey, hasprofile, hasmachine bool
-	id                                    int
-	key, profile, machine                 string
+	hasid, haskey bool
+	id            int
+	key           string
 }
 
 func (v *identity) HasID() bool {
@@ -30,30 +30,4 @@ func (v *identity) GetKey() string {
 func (v *identity) SetKey(s string) {
 	v.key = s
 	v.haskey = true
-}
-
-func (v *identity) HasProfile() bool {
-	return v.hasprofile
-}
-
-func (v *identity) GetProfile() string {
-	return v.profile
-}
-
-func (v *identity) SetProfile(s string) {
-	v.profile = s
-	v.hasprofile = true
-}
-
-func (v *identity) HasMachine() bool {
-	return v.hasmachine
-}
-
-func (v *identity) GetMachine() string {
-	return v.machine
-}
-
-func (v *identity) SetMachine(s string) {
-	v.machine = s
-	v.hasmachine = true
 }

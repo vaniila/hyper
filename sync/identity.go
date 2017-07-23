@@ -1,9 +1,9 @@
 package sync
 
 type identity struct {
-	hasid, haskey, hasmachine bool
-	id                        int
-	key, machine              string
+	hasid, haskey bool
+	id            int
+	key           string
 }
 
 func (v *identity) HasID() bool {
@@ -30,17 +30,4 @@ func (v *identity) GetKey() string {
 func (v *identity) SetKey(s string) {
 	v.key = s
 	v.haskey = true
-}
-
-func (v *identity) HasMachine() bool {
-	return v.hasmachine
-}
-
-func (v *identity) GetMachine() string {
-	return v.machine
-}
-
-func (v *identity) SetMachine(s string) {
-	v.machine = s
-	v.hasmachine = true
 }
