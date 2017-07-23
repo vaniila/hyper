@@ -7,6 +7,7 @@ const (
 type server struct {
 	id                   string
 	notfound, notallowed HandlerFunc
+	params               []Param
 	middleware           HandlerFuncs
 	routes               []Route
 }
@@ -20,9 +21,15 @@ func (v *server) Stop() error {
 }
 
 func (v *server) add(pat, method string) Route {
-	var middleware HandlerFuncs
+	var (
+		params     []Param
+		middleware HandlerFuncs
+	)
 	if l := len(v.middleware); l > 0 {
 		middleware = append(middleware, v.middleware...)
+	}
+	if l := len(v.params); l > 0 {
+		params = append(params, v.params...)
 	}
 	r := &router{
 		pat:        pat,
@@ -30,6 +37,7 @@ func (v *server) add(pat, method string) Route {
 		ws:         true,
 		http:       true,
 		memory:     defaultMaxMemory,
+		params:     params,
 		middleware: middleware,
 	}
 	v.routes = append(v.routes, r)
@@ -65,14 +73,21 @@ func (v *server) Delete(pat string) Route {
 }
 
 func (v *server) Namespace(pat string) Route {
-	var middleware HandlerFuncs
+	var (
+		params     []Param
+		middleware HandlerFuncs
+	)
 	if l := len(v.middleware); l > 0 {
 		middleware = append(middleware, v.middleware...)
+	}
+	if l := len(v.params); l > 0 {
+		params = append(params, v.params...)
 	}
 	r := &router{
 		pat:        pat,
 		namespace:  true,
 		memory:     defaultMaxMemory,
+		params:     params,
 		middleware: middleware,
 	}
 	v.routes = append(v.routes, r)
@@ -86,6 +101,11 @@ func (v *server) NotFound(h HandlerFunc) Service {
 
 func (v *server) MethodNotAllowed(h HandlerFunc) Service {
 	v.notallowed = h
+	return v
+}
+
+func (v *server) Params(p ...Param) Service {
+	v.params = append(v.params, p...)
 	return v
 }
 

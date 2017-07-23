@@ -14,6 +14,7 @@ type Service interface {
 	Namespace(string) Route
 	NotFound(HandlerFunc) Service
 	MethodNotAllowed(HandlerFunc) Service
+	Params(...Param) Service
 	Middleware(...HandlerFunc) Service
 	RouteNotFound() HandlerFunc
 	RouteNotAllowed() HandlerFunc
