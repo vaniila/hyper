@@ -46,6 +46,13 @@ func TestNew(t *testing.T) {
 
 	ro := h.Router()
 
+	ro.Params(
+		Header("Authorization").
+			Format(Text).
+			Doc(`Authorization`).
+			Require(false),
+	)
+
 	te := ro.Namespace("/test").
 		Alias("/test2").
 		Params(
@@ -57,6 +64,7 @@ func TestNew(t *testing.T) {
 				Require(false),
 		).
 		Middleware(func(c router.Context) {
+			c.KV().Set("hello", []byte("wow"))
 		})
 
 	ha := te.Namespace("/test").
@@ -94,7 +102,9 @@ func TestNew(t *testing.T) {
 		}).
 		Handle(func(c router.Context) {
 			c.Write(c.MustQuery("greeting").Val())
+			c.Write(c.Header().MustGet("Authorization").Val())
 			c.Write([]byte("!"))
+			c.Write(c.KV().Get("hello"))
 		})
 
 	h.Run()
