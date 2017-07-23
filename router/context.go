@@ -27,6 +27,7 @@ type Context interface {
 	Client() Client
 	Cache() CacheAdaptor
 	Message() MessageAdaptor
+	KV() KV
 	Cookie() Cookie
 	Header() Header
 	MustParam(s string) Value
@@ -69,6 +70,12 @@ type CacheAdaptor interface {
 type MessageAdaptor interface {
 	Emit([]byte, []byte) error
 	Listen([]byte, message.Handler) message.Close
+}
+
+// KV key value interface
+type KV interface {
+	Set(string, []byte) KV
+	Get(string) []byte
 }
 
 // Value interface

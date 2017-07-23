@@ -7,6 +7,7 @@ import (
 
 	"github.com/ua-parser/uap-go/uaparser"
 	"github.com/vaniila/hyper/fault"
+	"github.com/vaniila/hyper/kv"
 	"github.com/vaniila/hyper/router"
 	"github.com/vaniila/hyper/tracer"
 )
@@ -20,6 +21,7 @@ type Context struct {
 	client               router.Client
 	cache                router.CacheAdaptor
 	message              router.MessageAdaptor
+	kv                   router.KV
 	cookie               router.Cookie
 	header               router.Header
 	aborted              bool
@@ -70,6 +72,13 @@ func (v *Context) Cache() router.CacheAdaptor {
 
 func (v *Context) Message() router.MessageAdaptor {
 	return v.message
+}
+
+func (v *Context) KV() router.KV {
+	if v.kv == nil {
+		v.kv = kv.New()
+	}
+	return v.kv
 }
 
 func (v *Context) Cookie() router.Cookie {
