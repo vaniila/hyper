@@ -24,6 +24,14 @@ func New(opts ...Option) *Hyper {
 		engine.Message(o.Message),
 		engine.Router(o.Router),
 		engine.Websocket(w),
+		engine.AllowedOrigins(o.AllowedOrigins),
+		engine.AllowOriginFunc(o.AllowOriginFunc),
+		engine.AllowedMethods(o.AllowedMethods),
+		engine.AllowedHeaders(o.AllowedHeaders),
+		engine.ExposedHeaders(o.ExposedHeaders),
+		engine.AllowCredentials(o.AllowCredentials),
+		engine.MaxAge(o.MaxAge),
+		engine.OptionsPassthrough(o.OptionsPassthrough),
 	)
 	return &Hyper{
 		id:        o.ID,
