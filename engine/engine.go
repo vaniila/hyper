@@ -18,6 +18,7 @@ func New(opts ...Option) Service {
 		message:   o.Message,
 		router:    o.Router,
 		websocket: o.Websocket,
+		cors:      newCors(o),
 	}
 	return s
 }

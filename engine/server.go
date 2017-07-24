@@ -22,6 +22,7 @@ type server struct {
 	id        string
 	addr      string
 	protocol  Protocol
+	cors      *cors
 	cache     cache.Service
 	message   message.Service
 	router    router.Service
@@ -240,6 +241,8 @@ func (v *server) Start() error {
 	mux.Use(middleware.Recoverer)
 	mux.Use(middleware.DefaultCompress)
 	mux.Use(middleware.Heartbeat("/healthz"))
+	mux.Use(v.cors.Handler)
+
 	v.buildRoutes(mux, v.router.Routes())
 
 	// create http server
