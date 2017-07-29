@@ -16,6 +16,13 @@ type HandlerFunc func(Context)
 // HandlerFuncs type
 type HandlerFuncs []HandlerFunc
 
+// Protobuf message interface
+type ProtoMessage interface {
+	Reset()
+	String() string
+	ProtoMessage()
+}
+
 // Context interface
 type Context interface {
 	Identity() Identity
@@ -41,6 +48,7 @@ type Context interface {
 	Recover() error
 	Abort()
 	IsAborted() bool
+	Proto(ProtoMessage) Context
 	Write(b []byte) Context
 	Error(error) Context
 	Json(o interface{}) Context

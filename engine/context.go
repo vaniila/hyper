@@ -5,11 +5,18 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/golang/protobuf/proto"
 	"github.com/ua-parser/uap-go/uaparser"
 	"github.com/vaniila/hyper/fault"
 	"github.com/vaniila/hyper/kv"
 	"github.com/vaniila/hyper/router"
 	"github.com/vaniila/hyper/tracer"
+)
+
+const (
+	fieldOutput = "output"
+	typeJson    = "json"
+	typeProto   = "proto"
 )
 
 type Context struct {
@@ -197,6 +204,30 @@ func (v *Context) Abort() {
 
 func (v *Context) IsAborted() bool {
 	return v.aborted
+}
+
+func (v *Context) Proto(i router.ProtoMessage) router.Context {
+	var (
+		typ = typeJson
+		out []byte
+	)
+	for _, value := range v.values {
+		if value.Key() == fieldOutput {
+			switch value.String() {
+			case typeJson:
+				typ = typeJson
+			case typeProto:
+				typ = typeProto
+			}
+		}
+	}
+	switch typ {
+	case typeJson:
+		out, _ = json.Marshal(i)
+	case typeProto:
+		out, _ = proto.Marshal(i)
+	}
+	return v.Write(out)
 }
 
 func (v *Context) Write(b []byte) router.Context {
