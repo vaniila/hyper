@@ -3,6 +3,9 @@ package router
 // ParamType type
 type ParamType int
 
+// CustomFunc type
+type CustomFunc func(v []byte) bool
+
 // UnknownType type
 const (
 	UnknownParam ParamType = iota

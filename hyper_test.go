@@ -86,6 +86,15 @@ func TestNew(t *testing.T) {
 		Doc(`Test index page`).
 		Summary(`Test index page`).
 		Params(
+			Query("message").
+				Format(Text).
+				Custom(func(v []byte) bool {
+					return true
+				}).
+				Doc(`The greeting message`).
+				Summary(`The greeting message`).
+				Default([]byte("")).
+				Require(false),
 			Query("greeting").
 				Format(URL).
 				Doc(`The greeting message`).

@@ -4,6 +4,7 @@ import "github.com/vaniila/hyper/router"
 
 type param struct {
 	typ           router.ParamType
+	custom        router.CustomFunc
 	format        int
 	name          string
 	summary       string
@@ -14,6 +15,11 @@ type param struct {
 
 type paramconfig struct {
 	*param
+}
+
+func (v *param) Custom(c router.CustomFunc) router.Param {
+	v.custom = c
+	return v
 }
 
 func (v *param) Format(f int) router.Param {
@@ -51,6 +57,10 @@ func (v *paramconfig) Name() string {
 
 func (v *paramconfig) Type() router.ParamType {
 	return v.typ
+}
+
+func (v *paramconfig) Custom() router.CustomFunc {
+	return v.custom
 }
 
 func (v *paramconfig) Format() int {

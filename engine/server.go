@@ -128,7 +128,8 @@ func (v *server) handler(conf router.RouteConfig) func(http.ResponseWriter, *htt
 				data.val = conf.Default()
 			}
 			if len(data.val) != 0 && data.val != nil {
-				if parsed, ok := router.Val(conf.Format(), data.val); ok {
+				custom := conf.Custom()
+				if parsed, ok := router.Val(conf.Format(), data.val); ok && (custom == nil || (custom != nil && custom(data.val))) {
 					data.parsed = parsed
 				} else {
 					warning := fault.

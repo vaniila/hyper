@@ -69,6 +69,7 @@ type RouteConfig interface {
 
 // Param interface
 type Param interface {
+	Custom(CustomFunc) Param
 	Format(int) Param
 	Summary(string) Param
 	Doc(string) Param
@@ -81,6 +82,7 @@ type Param interface {
 type ParamConfig interface {
 	Name() string
 	Type() ParamType
+	Custom() CustomFunc
 	Format() int
 	Summary() string
 	Doc() string
