@@ -8,6 +8,7 @@ var (
 	Illegal           = string("illegal")
 	Invalid           = string("invalid")
 	AlreadyExists     = string("already_exists")
+	Conflict          = string("conflict")
 )
 
 // Reason struct

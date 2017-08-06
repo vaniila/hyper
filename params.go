@@ -1,6 +1,10 @@
 package hyper
 
-import "github.com/vaniila/hyper/router"
+import (
+	"log"
+
+	"github.com/vaniila/hyper/router"
+)
 
 type param struct {
 	typ           router.ParamType
@@ -10,6 +14,7 @@ type param struct {
 	summary       string
 	documentation string
 	defaults      []byte
+	oneof         []router.Param
 	require       bool
 }
 
@@ -79,6 +84,10 @@ func (v *paramconfig) Default() []byte {
 	return v.defaults
 }
 
+func (v *paramconfig) OneOf() []router.Param {
+	return v.oneof
+}
+
 func (v *paramconfig) Require() bool {
 	return v.require
 }
@@ -106,4 +115,14 @@ func Header(name string) router.Param {
 // Cookie func
 func Cookie(name string) router.Param {
 	return &param{typ: router.ParamCookie, name: name}
+}
+
+// OneOf group func
+func OneOf(ps ...router.Param) router.Param {
+	for _, param := range ps {
+		if param.Config().Require() {
+			log.Fatalf("cannot set %v field as required, [oneof] parameters do not support required checking", param.Config().Name())
+		}
+	}
+	return &param{typ: router.ParamOneOf, oneof: ps}
 }

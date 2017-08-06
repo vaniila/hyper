@@ -35,6 +35,7 @@ type Context struct {
 	wrote                bool
 	params               []router.Param
 	values               []router.Value
+	warnings             []fault.Cause
 	uaparser             *uaparser.Parser
 	recover              error
 }

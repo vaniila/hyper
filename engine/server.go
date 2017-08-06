@@ -31,7 +31,101 @@ type server struct {
 	ln        *net.Listener
 }
 
-func (v *server) handler(conf router.RouteConfig) func(http.ResponseWriter, *http.Request) {
+func (v *server) handleParameters(c *Context, params []router.Param) {
+	r := c.Req()
+	for _, pa := range params {
+		conf := pa.Config()
+		data := &Value{
+			typ: conf.Type(),
+			key: conf.Name(),
+			fmt: conf.Format(),
+		}
+		switch conf.Type() {
+		case router.ParamBody:
+			if vs := r.Form[conf.Name()]; len(vs) > 0 {
+				data.val = []byte(vs[0])
+				data.has = true
+			} else if vs := r.PostForm[conf.Name()]; len(vs) > 0 {
+				data.val = []byte(vs[0])
+				data.has = true
+			}
+		case router.ParamParam:
+			data.val = []byte(chi.URLParam(r, conf.Name()))
+			data.has = true
+		case router.ParamQuery:
+			if queries := r.URL.Query(); queries != nil {
+				if vs, ok := queries[conf.Name()]; ok && len(vs) > 0 {
+					data.val = []byte(vs[0])
+					data.has = true
+				}
+			}
+		case router.ParamHeader:
+			if headers := textproto.MIMEHeader(r.Header); headers != nil {
+				if vs, ok := headers[conf.Name()]; ok && len(vs) > 0 {
+					data.val = []byte(vs[0])
+					data.has = true
+				}
+			}
+		case router.ParamCookie:
+			if cookies := r.Cookies(); cookies != nil {
+				for _, c := range cookies {
+					if c != nil && c.Name == conf.Name() {
+						data.val = []byte(c.Value)
+						data.has = true
+					}
+				}
+			}
+		case router.ParamOneOf:
+			if params := conf.OneOf(); len(params) > 0 {
+				var fields []int
+				var offset = len(c.values)
+				v.handleParameters(c, params)
+				for i := 0; i < len(params); i++ {
+					value := c.values[i+offset]
+					if value.Has() {
+						fields = append(fields, i)
+					}
+				}
+				if len(fields) > 1 {
+					for _, field := range fields {
+						param := params[field]
+						conf := param.Config()
+						warning := fault.
+							For(fault.Conflict).
+							SetResource(conf.Type().String()).
+							SetField(conf.Name())
+						c.warnings = append(c.warnings, warning)
+					}
+				}
+			}
+		}
+		if len(data.val) == 0 || data.val == nil {
+			if conf.Require() {
+				warning := fault.
+					For(fault.MissingField).
+					SetResource(conf.Type().String()).
+					SetField(conf.Name())
+				c.warnings = append(c.warnings, warning)
+			}
+			data.val = conf.Default()
+		}
+		if len(data.val) != 0 && data.val != nil {
+			custom := conf.Custom()
+			if parsed, ok := router.Val(conf.Format(), data.val); ok && (custom == nil || (custom != nil && custom(data.val))) {
+				data.parsed = parsed
+			} else {
+				warning := fault.
+					For(fault.Invalid).
+					SetResource(conf.Type().String()).
+					SetField(conf.Name())
+				c.warnings = append(c.warnings, warning)
+			}
+		}
+		c.values = append(c.values, data)
+	}
+}
+
+func (v *server) handlerRoute(conf router.RouteConfig) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		client := &Client{
 			req:      r,
@@ -69,84 +163,18 @@ func (v *server) handler(conf router.RouteConfig) func(http.ResponseWriter, *htt
 				}
 			}
 		}()
-		var warnings []fault.Cause
 		switch r.Method {
 		case "PUT", "POST", "PATCH", "CONNECT":
 			r.ParseMultipartForm(conf.MaxMemory())
 		}
-		for _, pa := range conf.Params() {
-			conf := pa.Config()
-			data := &Value{
-				typ: conf.Type(),
-				key: conf.Name(),
-				fmt: conf.Format(),
-			}
-			switch conf.Type() {
-			case router.ParamBody:
-				if vs := r.Form[conf.Name()]; len(vs) > 0 {
-					data.val = []byte(vs[0])
-					data.has = true
-				} else if vs := r.PostForm[conf.Name()]; len(vs) > 0 {
-					data.val = []byte(vs[0])
-					data.has = true
-				}
-			case router.ParamParam:
-				data.val = []byte(chi.URLParam(r, conf.Name()))
-				data.has = true
-			case router.ParamQuery:
-				if queries := r.URL.Query(); queries != nil {
-					if vs, ok := queries[conf.Name()]; ok && len(vs) > 0 {
-						data.val = []byte(vs[0])
-						data.has = true
-					}
-				}
-			case router.ParamHeader:
-				if headers := textproto.MIMEHeader(r.Header); headers != nil {
-					if vs, ok := headers[conf.Name()]; ok && len(vs) > 0 {
-						data.val = []byte(vs[0])
-						data.has = true
-					}
-				}
-			case router.ParamCookie:
-				if cookies := r.Cookies(); cookies != nil {
-					for _, c := range cookies {
-						if c != nil && c.Name == conf.Name() {
-							data.val = []byte(c.Value)
-							data.has = true
-						}
-					}
-				}
-			}
-			if len(data.val) == 0 || data.val == nil {
-				if conf.Require() {
-					warning := fault.
-						For(fault.MissingField).
-						SetResource(conf.Type().String()).
-						SetField(conf.Name())
-					warnings = append(warnings, warning)
-				}
-				data.val = conf.Default()
-			}
-			if len(data.val) != 0 && data.val != nil {
-				custom := conf.Custom()
-				if parsed, ok := router.Val(conf.Format(), data.val); ok && (custom == nil || (custom != nil && custom(data.val))) {
-					data.parsed = parsed
-				} else {
-					warning := fault.
-						For(fault.Invalid).
-						SetResource(conf.Type().String()).
-						SetField(conf.Name())
-					warnings = append(warnings, warning)
-				}
-			}
-			c.values = append(c.values, data)
-		}
-		if len(warnings) > 0 {
+		v.handleParameters(c, conf.Params())
+		if len(c.warnings) > 0 {
 			err := fault.
 				New("Unprocessable Entity").
 				SetStatus(http.StatusUnprocessableEntity).
-				AddCause(warnings...)
-			panic(err)
+				AddCause(c.warnings...)
+			c.Error(err)
+			return
 		}
 		for _, md := range conf.Middlewares() {
 			if !c.IsAborted() && md != nil {
@@ -170,44 +198,44 @@ func (v *server) buildRoutes(mux *chi.Mux, routes []router.Route) {
 				mux.Mount(alias, r)
 			}
 		case conf.Method() == "GET":
-			mux.Get(conf.Pattern(), v.handler(conf))
+			mux.Get(conf.Pattern(), v.handlerRoute(conf))
 			for _, alias := range conf.Aliases() {
-				mux.Get(alias, v.handler(conf))
+				mux.Get(alias, v.handlerRoute(conf))
 			}
 		case conf.Method() == "HEAD":
-			mux.Head(conf.Pattern(), v.handler(conf))
+			mux.Head(conf.Pattern(), v.handlerRoute(conf))
 			for _, alias := range conf.Aliases() {
-				mux.Head(alias, v.handler(conf))
+				mux.Head(alias, v.handlerRoute(conf))
 			}
 		case conf.Method() == "OPTIONS":
-			mux.Options(conf.Pattern(), v.handler(conf))
+			mux.Options(conf.Pattern(), v.handlerRoute(conf))
 			for _, alias := range conf.Aliases() {
-				mux.Options(alias, v.handler(conf))
+				mux.Options(alias, v.handlerRoute(conf))
 			}
 		case conf.Method() == "POST":
-			mux.Post(conf.Pattern(), v.handler(conf))
+			mux.Post(conf.Pattern(), v.handlerRoute(conf))
 			for _, alias := range conf.Aliases() {
-				mux.Post(alias, v.handler(conf))
+				mux.Post(alias, v.handlerRoute(conf))
 			}
 		case conf.Method() == "PUT":
-			mux.Put(conf.Pattern(), v.handler(conf))
+			mux.Put(conf.Pattern(), v.handlerRoute(conf))
 			for _, alias := range conf.Aliases() {
-				mux.Put(alias, v.handler(conf))
+				mux.Put(alias, v.handlerRoute(conf))
 			}
 		case conf.Method() == "PATCH":
-			mux.Patch(conf.Pattern(), v.handler(conf))
+			mux.Patch(conf.Pattern(), v.handlerRoute(conf))
 			for _, alias := range conf.Aliases() {
-				mux.Patch(alias, v.handler(conf))
+				mux.Patch(alias, v.handlerRoute(conf))
 			}
 		case conf.Method() == "DELETE":
-			mux.Delete(conf.Pattern(), v.handler(conf))
+			mux.Delete(conf.Pattern(), v.handlerRoute(conf))
 			for _, alias := range conf.Aliases() {
-				mux.Delete(alias, v.handler(conf))
+				mux.Delete(alias, v.handlerRoute(conf))
 			}
 		}
 	}
 	if v.websocket != nil {
-		mux.Get("/_s", v.handler(
+		mux.Get("/_s", v.handlerRoute(
 			v.router.Get("/_s").
 				Name("Websocket").
 				Doc(`Websocket endpoint`).

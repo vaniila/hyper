@@ -88,6 +88,7 @@ type ParamConfig interface {
 	Doc() string
 	Default() []byte
 	Require() bool
+	OneOf() []Param
 }
 
 // Model interface

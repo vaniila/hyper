@@ -14,6 +14,7 @@ const (
 	ParamQuery
 	ParamHeader
 	ParamCookie
+	ParamOneOf
 )
 
 // String value for ParamType
@@ -29,6 +30,8 @@ func (v ParamType) String() string {
 		return "header"
 	case ParamCookie:
 		return "cookie"
+	case ParamOneOf:
+		return "oneOf"
 	}
 	return "unknown"
 }
