@@ -14,6 +14,7 @@ type param struct {
 	summary       string
 	documentation string
 	defaults      []byte
+	deps          []router.Param
 	oneof         []router.Param
 	require       bool
 }
@@ -49,6 +50,11 @@ func (v *param) Default(b []byte) router.Param {
 
 func (v *param) Require(b bool) router.Param {
 	v.require = b
+	return v
+}
+
+func (v *param) DependsOn(deps ...router.Param) router.Param {
+	v.deps = deps
 	return v
 }
 
@@ -92,6 +98,10 @@ func (v *paramconfig) Require() bool {
 	return v.require
 }
 
+func (v *paramconfig) DependsOn() []router.Param {
+	return v.deps
+}
+
 // Query func
 func Query(name string) router.Param {
 	return &param{typ: router.ParamQuery, name: name}
@@ -122,6 +132,9 @@ func OneOf(ps ...router.Param) router.Param {
 	for _, param := range ps {
 		if param.Config().Require() {
 			log.Fatalf("cannot set %v field as required, [oneof] parameters do not support required checking", param.Config().Name())
+		}
+		if param.Config().Type() == router.ParamOneOf {
+			log.Fatal("cannot add oneof field within a oneof group")
 		}
 	}
 	return &param{typ: router.ParamOneOf, oneof: ps}

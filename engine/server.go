@@ -31,7 +31,7 @@ type server struct {
 	ln        *net.Listener
 }
 
-func (v *server) handleParameters(c *Context, params []router.Param) {
+func (v *server) handleParameters(c *Context, route router.RouteConfig, params []router.Param) {
 	r := c.Req()
 	for _, pa := range params {
 		conf := pa.Config()
@@ -79,7 +79,7 @@ func (v *server) handleParameters(c *Context, params []router.Param) {
 			if params := conf.OneOf(); len(params) > 0 {
 				var fields []int
 				var offset = len(c.values)
-				v.handleParameters(c, params)
+				v.handleParameters(c, route, params)
 				for i := 0; i < len(params); i++ {
 					value := c.values[i+offset]
 					if value.Has() {
@@ -111,9 +111,26 @@ func (v *server) handleParameters(c *Context, params []router.Param) {
 		}
 		if len(data.val) != 0 && data.val != nil {
 			custom := conf.Custom()
-			if parsed, ok := router.Val(conf.Format(), data.val); ok && (custom == nil || (custom != nil && custom(data.val))) {
+			depson := conf.DependsOn()
+			switch parsed, ok := router.Val(conf.Format(), data.val); {
+			case ok && (custom == nil || (custom != nil && custom(data.val))):
 				data.parsed = parsed
-			} else {
+				if len(depson) > 0 {
+					for _, dep := range depson {
+						idx := route.ValueIndex(dep)
+						if len(c.values)-1 >= idx {
+							if val := c.values[idx]; val == nil || !val.Has() {
+								conf := dep.Config()
+								warning := fault.
+									For(fault.MissingField).
+									SetResource(conf.Type().String()).
+									SetField(conf.Name())
+								c.warnings = append(c.warnings, warning)
+							}
+						}
+					}
+				}
+			default:
 				warning := fault.
 					For(fault.Invalid).
 					SetResource(conf.Type().String()).
@@ -141,6 +158,7 @@ func (v *server) handlerRoute(conf router.RouteConfig) func(http.ResponseWriter,
 			client:    client,
 			values:    make([]router.Value, 0),
 			params:    conf.Params(),
+			warnings:  make([]fault.Cause, 0),
 			cache:     v.cache,
 			message:   v.message,
 			uaparser:  v.uaparser,
@@ -167,7 +185,7 @@ func (v *server) handlerRoute(conf router.RouteConfig) func(http.ResponseWriter,
 		case "PUT", "POST", "PATCH", "CONNECT":
 			r.ParseMultipartForm(conf.MaxMemory())
 		}
-		v.handleParameters(c, conf.Params())
+		v.handleParameters(c, conf, conf.Params())
 		if len(c.warnings) > 0 {
 			err := fault.
 				New("Unprocessable Entity").

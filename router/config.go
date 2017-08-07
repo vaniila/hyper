@@ -1,5 +1,7 @@
 package router
 
+import "fmt"
+
 type config struct {
 	pat           string
 	aliases       []string
@@ -12,6 +14,7 @@ type config struct {
 	documentation string
 	summary       string
 	params        []Param
+	vidx          map[string]int
 	memory        int64
 	middleware    HandlerFuncs
 	handler       HandlerFunc
@@ -57,6 +60,17 @@ func (v *config) HTTP() bool {
 
 func (v *config) Params() []Param {
 	return v.params
+}
+
+func (v *config) ValueIndex(p Param) int {
+	if p != nil {
+		conf := p.Config()
+		name := fmt.Sprintf("%v#%v", conf.Type(), conf.Name())
+		if i, ok := v.vidx[name]; ok {
+			return i
+		}
+	}
+	return -1
 }
 
 func (v *config) MaxMemory() int64 {

@@ -86,6 +86,12 @@ func TestNew(t *testing.T) {
 		Doc(`Test index page`).
 		Summary(`Test index page`).
 		Params(
+			Query("greeting").
+				Format(URL).
+				Doc(`The greeting message`).
+				Summary(`The greeting message`).
+				Default([]byte("")).
+				Require(false),
 			OneOf(
 				Query("m1").
 					Format(Text).
@@ -94,14 +100,10 @@ func TestNew(t *testing.T) {
 				Query("m2").
 					Format(Text).
 					Default([]byte("")).
-					Require(false),
+					DependsOn(
+						Query("greeting"),
+					),
 			),
-			Query("greeting").
-				Format(URL).
-				Doc(`The greeting message`).
-				Summary(`The greeting message`).
-				Default([]byte("")).
-				Require(false),
 		).
 		Models(
 			Model(StatusOK, new(string)),

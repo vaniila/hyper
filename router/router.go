@@ -59,6 +59,7 @@ type RouteConfig interface {
 	Websocket() bool
 	HTTP() bool
 	Params() []Param
+	ValueIndex(Param) int
 	MaxMemory() int64
 	Routes() []Route
 	Handler() HandlerFunc
@@ -75,6 +76,7 @@ type Param interface {
 	Doc(string) Param
 	Default([]byte) Param
 	Require(bool) Param
+	DependsOn(...Param) Param
 	Config() ParamConfig
 }
 
@@ -88,6 +90,7 @@ type ParamConfig interface {
 	Doc() string
 	Default() []byte
 	Require() bool
+	DependsOn() []Param
 	OneOf() []Param
 }
 

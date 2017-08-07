@@ -38,6 +38,8 @@ func (v *server) add(pat, method string) Route {
 		http:       true,
 		memory:     defaultMaxMemory,
 		params:     params,
+		vref:       0,
+		vidx:       make(map[string]int),
 		middleware: middleware,
 	}
 	v.routes = append(v.routes, r)
@@ -88,6 +90,8 @@ func (v *server) Namespace(pat string) Route {
 		namespace:  true,
 		memory:     defaultMaxMemory,
 		params:     params,
+		vref:       0,
+		vidx:       make(map[string]int),
 		middleware: middleware,
 	}
 	v.routes = append(v.routes, r)
