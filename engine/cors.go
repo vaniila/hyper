@@ -182,7 +182,7 @@ func (c *cors) Handler(h http.Handler) http.Handler {
 			// is authentication middleware ; OPTIONS requests won't carry authentication
 			// headers (see #1)
 			if c.optionPassthrough {
-				h.ServeHTTP(w, r)
+				w.WriteHeader(204)
 			}
 		} else {
 			c.handleActualRequest(w, r)
