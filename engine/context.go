@@ -121,15 +121,33 @@ func (v *Context) MustBody(s string) router.Value {
 	return val
 }
 
-func (v *Context) Param(s string) (router.Value, error) {
+func (v *Context) MatchParameter(s string, typ router.ParamType) router.Value {
 	for _, param := range v.params {
-		if param.Config().Name() == s && param.Config().Type() == router.ParamParam {
+		switch {
+		case param.Config().Name() == s && param.Config().Type() == typ:
 			for _, value := range v.values {
 				if value.Key() == s {
-					return value, nil
+					return value
+				}
+			}
+		case param.Config().Type() == router.ParamOneOf:
+			for _, param := range param.Config().OneOf() {
+				if param.Config().Name() == s && param.Config().Type() == typ {
+					for _, value := range v.values {
+						if value.Key() == s {
+							return value
+						}
+					}
 				}
 			}
 		}
+	}
+	return nil
+}
+
+func (v *Context) Param(s string) (router.Value, error) {
+	if v := v.MatchParameter(s, router.ParamParam); v != nil {
+		return v, nil
 	}
 	err := fault.
 		New("Illegal Field Entity").
@@ -144,14 +162,8 @@ func (v *Context) Param(s string) (router.Value, error) {
 }
 
 func (v *Context) Query(s string) (router.Value, error) {
-	for _, param := range v.params {
-		if param.Config().Name() == s && param.Config().Type() == router.ParamQuery {
-			for _, value := range v.values {
-				if value.Key() == s {
-					return value, nil
-				}
-			}
-		}
+	if v := v.MatchParameter(s, router.ParamQuery); v != nil {
+		return v, nil
 	}
 	err := fault.
 		New("Illegal Field Entity").
@@ -166,14 +178,8 @@ func (v *Context) Query(s string) (router.Value, error) {
 }
 
 func (v *Context) Body(s string) (router.Value, error) {
-	for _, param := range v.params {
-		if param.Config().Name() == s && param.Config().Type() == router.ParamBody {
-			for _, value := range v.values {
-				if value.Key() == s {
-					return value, nil
-				}
-			}
-		}
+	if v := v.MatchParameter(s, router.ParamBody); v != nil {
+		return v, nil
 	}
 	err := fault.
 		New("Illegal Field Entity").

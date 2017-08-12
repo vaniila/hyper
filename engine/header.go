@@ -20,10 +20,21 @@ func (v *Header) Set(key string, val string) {
 // Get data from request header
 func (v *Header) Get(key string) (router.Value, error) {
 	for _, param := range v.context.params {
-		if param.Config().Name() == key && param.Config().Type() == router.ParamHeader {
+		switch {
+		case param.Config().Name() == key && param.Config().Type() == router.ParamHeader:
 			for _, value := range v.context.values {
 				if value.Key() == key {
 					return value, nil
+				}
+			}
+		case param.Config().Type() == router.ParamOneOf:
+			for _, param := range param.Config().OneOf() {
+				if param.Config().Name() == key && param.Config().Type() == router.ParamHeader {
+					for _, value := range v.context.values {
+						if value.Key() == key {
+							return value, nil
+						}
+					}
 				}
 			}
 		}

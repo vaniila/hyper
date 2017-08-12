@@ -116,6 +116,8 @@ func TestNew(t *testing.T) {
 			c.Write(c.MustQuery("greeting").Val())
 			c.Write(c.Header().MustGet("Authorization").Val())
 			c.Write([]byte("!"))
+			c.Write(c.MustQuery("m1").Val())
+			c.Write(c.MustQuery("m2").Val())
 			c.Write(c.KV().Get("hello"))
 		})
 
