@@ -10,13 +10,19 @@ import (
 	"github.com/vaniila/hyper/tracer"
 )
 
+// key type
+type key string
+
+// RequestContext key
+var RequestContext = key("request-context")
+
 // HandlerFunc type
 type HandlerFunc func(Context)
 
 // HandlerFuncs type
 type HandlerFuncs []HandlerFunc
 
-// Protobuf message interface
+// ProtoMessage message interface
 type ProtoMessage interface {
 	Reset()
 	String() string

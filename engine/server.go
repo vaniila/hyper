@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"context"
 	"net"
 
 	"github.com/pressly/chi"
@@ -163,6 +164,7 @@ func (v *server) handlerRoute(conf router.RouteConfig) func(http.ResponseWriter,
 			message:   v.message,
 			uaparser:  v.uaparser,
 		}
+		c.ctx = context.WithValue(c.ctx, router.RequestContext, c)
 		h := &Header{
 			context: c,
 		}
