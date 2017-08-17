@@ -3,6 +3,8 @@ package hyper
 import (
 	"testing"
 
+	"github.com/vaniila/hyper/gql"
+	"github.com/vaniila/hyper/gql/interfaces"
 	"github.com/vaniila/hyper/router"
 	"github.com/vaniila/hyper/sync"
 )
@@ -52,6 +54,45 @@ func TestNew(t *testing.T) {
 			Doc(`Authorization`).
 			Require(false),
 	)
+
+	ro.
+		Get("/graphql").
+		Params(
+			GQLQueries...,
+		).
+		Handle(GraphQL(
+			gql.Schema(
+				gql.Query(
+					gql.
+						Root().
+						Fields(
+							gql.
+								Field("hello").
+								Type(
+									gql.
+										Object("hello").
+										Fields(
+											gql.
+												Field("message").
+												Type(gql.String).
+												Resolve(func(r interfaces.Resolver) (interface{}, error) {
+													return r.Source(), nil
+												}),
+										),
+								).
+								Args(
+									gql.
+										Arg("name").
+										Default([]byte("world")).
+										Type(gql.String),
+								).
+								Resolve(func(r interfaces.Resolver) (interface{}, error) {
+									return r.MustArg("name").String(), nil
+								}),
+						),
+				),
+			),
+		))
 
 	te := ro.Namespace("/test").
 		Alias("/test2").

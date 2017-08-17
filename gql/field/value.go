@@ -1,4 +1,4 @@
-package engine
+package field
 
 import (
 	"net/http"
@@ -10,7 +10,6 @@ import (
 
 // Value struct
 type Value struct {
-	typ    router.ParamType
 	fmt    int
 	key    string
 	val    []byte
@@ -20,7 +19,7 @@ type Value struct {
 
 // Type of value
 func (v *Value) Type() router.ParamType {
-	return v.typ
+	return router.UnknownParam
 }
 
 // Key of value
