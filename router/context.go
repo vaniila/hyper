@@ -31,6 +31,10 @@ type ProtoMessage interface {
 
 // Context interface
 type Context interface {
+	Deadline() (time.Time, bool)
+	Done() <-chan struct{}
+	Err() error
+	Value(interface{}) interface{}
 	Identity() Identity
 	MachineID() string
 	ProcessID() string

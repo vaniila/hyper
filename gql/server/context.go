@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"net/http"
+	"time"
 
 	"github.com/vaniila/hyper/router"
 )
@@ -15,6 +16,10 @@ type ctx struct {
 	private router.Context
 }
 
+func (v *ctx) Deadline() (time.Time, bool)          { return v.private.Deadline() }
+func (v *ctx) Done() <-chan struct{}                { return v.private.Done() }
+func (v *ctx) Err() error                           { return v.private.Err() }
+func (v *ctx) Value(key interface{}) interface{}    { return v.private.Value(key) }
 func (v *ctx) Identity() router.Identity            { return v.private.Identity() }
 func (v *ctx) MachineID() string                    { return v.private.MachineID() }
 func (v *ctx) ProcessID() string                    { return v.private.ProcessID() }

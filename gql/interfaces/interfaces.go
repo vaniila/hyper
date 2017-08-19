@@ -3,6 +3,7 @@ package interfaces
 import (
 	"context"
 	"net/http"
+	"time"
 
 	"github.com/graphql-go/graphql"
 	"github.com/vaniila/hyper/router"
@@ -68,6 +69,10 @@ type Type interface {
 
 // Context interface
 type Context interface {
+	Deadline() (time.Time, bool)
+	Done() <-chan struct{}
+	Err() error
+	Value(interface{}) interface{}
 	Identity() router.Identity
 	MachineID() string
 	ProcessID() string

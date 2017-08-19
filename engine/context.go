@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"time"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/ua-parser/uap-go/uaparser"
@@ -38,6 +39,22 @@ type Context struct {
 	warnings             []fault.Cause
 	uaparser             *uaparser.Parser
 	recover              error
+}
+
+func (v *Context) Deadline() (time.Time, bool) {
+	return v.ctx.Deadline()
+}
+
+func (v *Context) Done() <-chan struct{} {
+	return v.ctx.Done()
+}
+
+func (v *Context) Err() error {
+	return v.ctx.Err()
+}
+
+func (v *Context) Value(key interface{}) interface{} {
+	return v.ctx.Value(key)
 }
 
 func (v *Context) MachineID() string {
