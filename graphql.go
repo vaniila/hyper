@@ -2,8 +2,11 @@ package hyper
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
+	"path/filepath"
+	"runtime"
 
 	"github.com/graphql-go/graphql"
 	"github.com/vaniila/hyper/router"
@@ -82,5 +85,18 @@ func GraphQL(schema graphql.Schema) router.HandlerFunc {
 			c.Status(http.StatusForbidden)
 		}
 		c.Json(result)
+	}
+}
+
+// GraphiQL renders graphiql interface
+func GraphiQL() router.HandlerFunc {
+	_, caller, _, _ := runtime.Caller(0)
+	dir := filepath.Dir(caller)
+	return func(c router.Context) {
+		d := http.Dir(fmt.Sprintf("%v/gql/graphiql/", dir))
+		h := http.FileServer(d)
+		http.
+			StripPrefix("/graphiql/", h).
+			ServeHTTP(c.Res(), c.Req())
 	}
 }

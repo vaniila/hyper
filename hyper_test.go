@@ -56,9 +56,9 @@ func TestNew(t *testing.T) {
 	)
 
 	ro.
-		Get("/graphql").
+		Post("/graphql").
 		Params(
-			GQLQueries...,
+			append(GQLQueries, GQLBodies...)...,
 		).
 		Handle(GraphQL(
 			gql.Schema(
@@ -93,6 +93,10 @@ func TestNew(t *testing.T) {
 				),
 			),
 		))
+
+	ro.
+		Get("/graphiql/*").
+		Handle(GraphiQL())
 
 	te := ro.Namespace("/test").
 		Alias("/test2").
