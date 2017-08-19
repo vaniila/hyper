@@ -37,10 +37,12 @@ type Route interface {
 	Summary(string) Route
 	Doc(string) Route
 	Params(...Param) Route
+	ClearParams() Route
 	MaxMemory(int64) Route
 	Handle(HandlerFunc) Route
 	Catch(HandlerFunc) Route
 	Middleware(...HandlerFunc) Route
+	ClearMiddleware() Route
 	Websocket(bool) Route
 	HTTP(bool) Route
 	Models(...Model) Route

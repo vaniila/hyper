@@ -212,6 +212,11 @@ func (v *router) Params(ps ...Param) Route {
 	return v
 }
 
+func (v *router) ClearParams() Route {
+	v.params = make([]Param, 0)
+	return v
+}
+
 func (v *router) MaxMemory(m int64) Route {
 	v.memory = m
 	return v
@@ -239,6 +244,11 @@ func (v *router) Middleware(fs ...HandlerFunc) Route {
 			v.middleware = append(v.middleware, f)
 		}
 	}
+	return v
+}
+
+func (v *router) ClearMiddleware() Route {
+	v.middleware = make(HandlerFuncs, 0)
 	return v
 }
 
