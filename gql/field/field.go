@@ -1,6 +1,8 @@
 package field
 
 import (
+	"time"
+
 	"github.com/graphql-go/graphql"
 	"github.com/vaniila/hyper/gql/interfaces"
 	"github.com/vaniila/hyper/gql/server"
@@ -76,6 +78,10 @@ func (v *field) ResolveParameters(params map[string]interface{}, values []interf
 			case string:
 				data.val = []byte(o)
 				data.has = true
+			case time.Time:
+				data.val = []byte(o.String())
+				data.has = true
+				data.parsed = o
 			case map[string]interface{}:
 				data.val = nil
 				data.has = true
