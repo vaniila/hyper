@@ -41,6 +41,7 @@ func (v *ctx) Body(s string) (router.Value, error)  { return v.private.Body(s) }
 func (v *ctx) File(s string) []byte                 { return v.private.File(s) }
 func (v *ctx) Abort()                               { v.private.Abort() }
 func (v *ctx) IsAborted() bool                      { return v.private.IsAborted() }
+func (v *ctx) Native() router.Context               { return v.private }
 
 func (v *ctx) HasErrors() bool {
 	o := v.private.KV().Get(ERRORS)

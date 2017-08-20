@@ -121,4 +121,5 @@ type Context interface {
 	HasErrors() bool
 	Errors() []error
 	GraphQLError(error)
+	Native() router.Context
 }
