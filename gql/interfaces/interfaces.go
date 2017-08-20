@@ -25,7 +25,11 @@ type Object interface {
 	Name(string) Object
 	Description(string) Object
 	Fields(...Field) Object
-	Compile() *graphql.Object
+	Args(...Argument) Object
+	ToObject() *graphql.Object
+	ToInputObject() *graphql.InputObject
+	ExportFields() []Field
+	ExportArgs() []Argument
 }
 
 // Field for GraphQL
@@ -43,10 +47,12 @@ type Field interface {
 type Argument interface {
 	Name(string) Argument
 	Description(string) Argument
-	Type(graphql.Input) Argument
+	Type(interface{}) Argument
 	Default([]byte) Argument
 	Require(bool) Argument
-	Compile() (string, *graphql.ArgumentConfig)
+	InputObject() Object
+	ToArgumentConfig() (string, *graphql.ArgumentConfig)
+	ToInputObjectFieldConfig() (string, *graphql.InputObjectFieldConfig)
 }
 
 // Resolver interface
@@ -54,8 +60,8 @@ type Resolver interface {
 	Context() Context
 	Params() graphql.ResolveParams
 	Source() interface{}
-	Arg(string) (router.Value, error)
-	MustArg(string) router.Value
+	Arg(string) (Value, error)
+	MustArg(string) Value
 }
 
 // Type for GraphQL
@@ -65,6 +71,24 @@ type Type interface {
 	Fields(...Field) Type
 	Input() graphql.Input
 	Output() graphql.Output
+}
+
+// Value for GraphQL
+type Value interface {
+	In(string) Value
+	Key() string
+	Val() []byte
+	Has() bool
+	MustInt() int
+	MustI32() int32
+	MustI64() int64
+	MustU32() uint32
+	MustU64() uint64
+	MustF32() float32
+	MustF64() float64
+	MustBool() bool
+	MustTime() time.Time
+	String() string
 }
 
 // Context interface

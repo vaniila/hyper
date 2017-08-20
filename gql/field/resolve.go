@@ -6,13 +6,12 @@ import (
 	"github.com/graphql-go/graphql"
 	"github.com/vaniila/hyper/fault"
 	"github.com/vaniila/hyper/gql/interfaces"
-	"github.com/vaniila/hyper/router"
 )
 
 type resolve struct {
 	context interfaces.Context
 	params  graphql.ResolveParams
-	values  []router.Value
+	values  []interfaces.Value
 }
 
 func (v *resolve) Context() interfaces.Context {
@@ -27,7 +26,7 @@ func (v *resolve) Source() interface{} {
 	return v.params.Source
 }
 
-func (v *resolve) Arg(s string) (router.Value, error) {
+func (v *resolve) Arg(s string) (interfaces.Value, error) {
 	for _, value := range v.values {
 		if value.Key() == s {
 			return value, nil
@@ -44,7 +43,7 @@ func (v *resolve) Arg(s string) (router.Value, error) {
 	return nil, err
 }
 
-func (v *resolve) MustArg(s string) router.Value {
+func (v *resolve) MustArg(s string) interfaces.Value {
 	o, err := v.Arg(s)
 	if err != nil {
 		panic(err)

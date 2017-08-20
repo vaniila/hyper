@@ -5,11 +5,12 @@ import (
 	"time"
 
 	"github.com/vaniila/hyper/fault"
+	"github.com/vaniila/hyper/gql/interfaces"
 	"github.com/vaniila/hyper/router"
 )
 
-// Value struct
-type Value struct {
+// value struct
+type value struct {
 	fmt    int
 	key    string
 	val    []byte
@@ -17,23 +18,30 @@ type Value struct {
 	parsed interface{}
 }
 
-// Type of value
-func (v *Value) Type() router.ParamType {
-	return router.UnknownParam
+func (v *value) In(s string) interfaces.Value {
+	switch o := v.parsed.(type) {
+	case []interfaces.Value:
+		for _, r := range o {
+			if r.Key() == s {
+				return r
+			}
+		}
+	}
+	return nil
 }
 
 // Key of value
-func (v *Value) Key() string {
+func (v *value) Key() string {
 	return v.key
 }
 
 // Val is the data of value
-func (v *Value) Val() []byte {
+func (v *value) Val() []byte {
 	return v.val
 }
 
 // ThrowIllegal throws illegal type error
-func (v *Value) ThrowIllegal(cause fault.Cause) {
+func (v *value) ThrowIllegal(cause fault.Cause) {
 	err := fault.
 		New("Illegal Action").
 		SetStatus(http.StatusInternalServerError).
@@ -42,7 +50,7 @@ func (v *Value) ThrowIllegal(cause fault.Cause) {
 }
 
 // MustInt returns the data in int format
-func (v *Value) MustInt() int {
+func (v *value) MustInt() int {
 	if v.fmt != router.Int {
 		v.ThrowIllegal(
 			fault.
@@ -55,7 +63,7 @@ func (v *Value) MustInt() int {
 }
 
 // MustI32 returns data in int32 format
-func (v *Value) MustI32() int32 {
+func (v *value) MustI32() int32 {
 	if v.fmt != router.I32 {
 		v.ThrowIllegal(
 			fault.
@@ -68,7 +76,7 @@ func (v *Value) MustI32() int32 {
 }
 
 // MustI64 returns data in int64 format
-func (v *Value) MustI64() int64 {
+func (v *value) MustI64() int64 {
 	if v.fmt != router.I64 {
 		v.ThrowIllegal(
 			fault.
@@ -81,7 +89,7 @@ func (v *Value) MustI64() int64 {
 }
 
 // MustU32 returns data in uint32 format
-func (v *Value) MustU32() uint32 {
+func (v *value) MustU32() uint32 {
 	if v.fmt != router.U32 {
 		v.ThrowIllegal(
 			fault.
@@ -94,7 +102,7 @@ func (v *Value) MustU32() uint32 {
 }
 
 // MustU64 returns data in uint64 format
-func (v *Value) MustU64() uint64 {
+func (v *value) MustU64() uint64 {
 	if v.fmt != router.U64 {
 		v.ThrowIllegal(
 			fault.
@@ -107,7 +115,7 @@ func (v *Value) MustU64() uint64 {
 }
 
 // MustF32 returns data in float32 format
-func (v *Value) MustF32() float32 {
+func (v *value) MustF32() float32 {
 	if v.fmt != router.F32 {
 		v.ThrowIllegal(
 			fault.
@@ -120,7 +128,7 @@ func (v *Value) MustF32() float32 {
 }
 
 // MustF64 returns data in float64 format
-func (v *Value) MustF64() float64 {
+func (v *value) MustF64() float64 {
 	switch v.fmt {
 	case router.F64, router.Lat, router.Lon:
 		// whitelist
@@ -136,7 +144,7 @@ func (v *Value) MustF64() float64 {
 }
 
 // MustBool returns data in boolean format
-func (v *Value) MustBool() bool {
+func (v *value) MustBool() bool {
 	if v.fmt != router.Bool {
 		v.ThrowIllegal(
 			fault.
@@ -149,7 +157,7 @@ func (v *Value) MustBool() bool {
 }
 
 // MustTime returns data in time.Time format
-func (v *Value) MustTime() time.Time {
+func (v *value) MustTime() time.Time {
 	switch v.fmt {
 	case router.DateTimeRFC822, router.DateTimeRFC3339, router.DateTimeUnix:
 		// whitelist
@@ -165,10 +173,10 @@ func (v *Value) MustTime() time.Time {
 }
 
 // Has represents if input exists
-func (v *Value) Has() bool {
+func (v *value) Has() bool {
 	return v.has
 }
 
-func (v *Value) String() string {
+func (v *value) String() string {
 	return string(v.val)
 }

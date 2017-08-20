@@ -34,10 +34,10 @@ var GQLBodies = []router.Param{
 
 // Payload struct
 type Payload struct {
-	RawQuery        string                 `json:"query"`
-	RawVariables    string                 `json:"variables"`
-	ParsedQuery     string                 `json:"-"`
-	ParsedVariables map[string]interface{} `json:"-"`
+	RawQuery        string                 `json:"-"`
+	RawVariables    string                 `json:"-"`
+	ParsedQuery     string                 `json:"query"`
+	ParsedVariables map[string]interface{} `json:"variables"`
 }
 
 // Parse to read raw query and variables
@@ -57,24 +57,28 @@ func GraphQL(schema graphql.Schema) router.HandlerFunc {
 			case c.MustBody("query").Has() || c.MustBody("variables").Has():
 				payload.RawQuery = c.MustBody("query").String()
 				payload.RawVariables = c.MustBody("variables").String()
+				payload.Parse()
 			default:
 				b, _ := ioutil.ReadAll(c.Req().Body)
-				json.Unmarshal(b, &payload)
+				if err := json.Unmarshal(b, &payload); err != nil {
+					payload.ParsedQuery = string(b[:])
+				}
 			}
 		default:
 			switch {
 			case c.MustQuery("query").Has() || c.MustQuery("variables").Has():
 				payload.RawQuery = c.MustQuery("query").String()
 				payload.RawVariables = c.MustQuery("variables").String()
+				payload.Parse()
 			default:
 				r := c.Req().URL.RawQuery
 				b := []byte(r)
 				if err := json.Unmarshal(b, &payload); err != nil {
-					payload.RawQuery = r
+					payload.ParsedQuery = r
 				}
 			}
 		}
-		payload.Parse()
+
 		result := graphql.Do(graphql.Params{
 			Schema:         schema,
 			RequestString:  payload.ParsedQuery,

@@ -34,7 +34,7 @@ func (v *field) Type(t interface{}) interfaces.Field {
 	case graphql.Output:
 		v.typ = o
 	case interfaces.Object:
-		v.typ = o.Compile()
+		v.typ = o.ToObject()
 	}
 	return v
 }
@@ -49,10 +49,61 @@ func (v *field) Resolve(h interfaces.ResolveHandler) interfaces.Field {
 	return v
 }
 
+func (v *field) ResolveParameters(params map[string]interface{}, values []interfaces.Value, args []interfaces.Argument) {
+	for i, arg := range args {
+		name, conf := arg.ToArgumentConfig()
+		data := &value{
+			key: name,
+		}
+		switch conf.Type {
+		case graphql.Int:
+			data.fmt = router.Int
+		case graphql.Float:
+			data.fmt = router.F64
+		case graphql.String:
+			data.fmt = router.Text
+		case graphql.Boolean:
+			data.fmt = router.Bool
+		case graphql.ID:
+			data.fmt = router.Text
+		case graphql.DateTime:
+			data.fmt = router.DateTimeRFC3339
+		default:
+			data.fmt = router.Any
+		}
+		if k, ok := params[name]; ok {
+			switch o := k.(type) {
+			case string:
+				data.val = []byte(o)
+				data.has = true
+			case map[string]interface{}:
+				data.val = nil
+				data.has = true
+				if args := arg.InputObject().ExportArgs(); len(args) > 0 {
+					arr := make([]interfaces.Value, len(args))
+					v.ResolveParameters(o, arr, args)
+					data.parsed = arr
+				}
+			}
+		}
+		switch data.has {
+		case true && data.parsed == nil:
+			if parsed, ok := router.Val(data.fmt, data.val); ok {
+				data.parsed = parsed
+			}
+		case false:
+			if o, ok := conf.DefaultValue.([]byte); ok {
+				data.val = o
+			}
+		}
+		values[i] = data
+	}
+}
+
 func (v *field) Compile() *graphql.Field {
 	args := graphql.FieldConfigArgument{}
 	for _, arg := range v.args {
-		k, v := arg.Compile()
+		k, v := arg.ToArgumentConfig()
 		args[k] = v
 	}
 	hdfn := func(params graphql.ResolveParams) (interface{}, error) {
@@ -60,45 +111,9 @@ func (v *field) Compile() *graphql.Field {
 		r := &resolve{
 			context: c,
 			params:  params,
-			values:  make([]router.Value, len(v.args)),
+			values:  make([]interfaces.Value, len(v.args)),
 		}
-		for i, arg := range v.args {
-			name, conf := arg.Compile()
-			data := &Value{
-				key: name,
-			}
-			switch conf.Type {
-			case graphql.Int:
-				data.fmt = router.Int
-			case graphql.Float:
-				data.fmt = router.F64
-			case graphql.String:
-				data.fmt = router.Text
-			case graphql.Boolean:
-				data.fmt = router.Bool
-			case graphql.ID:
-				data.fmt = router.Text
-			case graphql.DateTime:
-				data.fmt = router.DateTimeRFC3339
-			default:
-				data.fmt = router.Any
-			}
-			if v, ok := params.Args[name].(string); ok {
-				data.val = []byte(v)
-				data.has = true
-			}
-			switch data.has {
-			case true:
-				if parsed, ok := router.Val(data.fmt, data.val); ok {
-					data.parsed = parsed
-				}
-			case false:
-				if o, ok := conf.DefaultValue.([]byte); ok {
-					data.val = o
-				}
-			}
-			r.values[i] = data
-		}
+		v.ResolveParameters(params.Args, r.values, v.args)
 		o, err := v.resolve(r)
 		if err != nil {
 			r.Context().GraphQLError(err)

@@ -68,26 +68,28 @@ func TestNew(t *testing.T) {
 						Fields(
 							gql.
 								Field("hello").
-								Type(
-									gql.
-										Object("hello").
-										Fields(
-											gql.
-												Field("message").
-												Type(gql.String).
-												Resolve(func(r interfaces.Resolver) (interface{}, error) {
-													return r.Source(), nil
-												}),
-										),
-								).
+								Type(gql.String).
 								Args(
 									gql.
-										Arg("name").
-										Default([]byte("world")).
-										Type(gql.String),
+										Arg("input").
+										Type(gql.String).
+										Require(false),
+									gql.
+										Arg("test").
+										Require(true).
+										Type(
+											gql.
+												Object("HelloInput").
+												Args(
+													gql.
+														Arg("message").
+														Description("some message").
+														Type(gql.String),
+												),
+										),
 								).
 								Resolve(func(r interfaces.Resolver) (interface{}, error) {
-									return r.MustArg("name").String(), nil
+									return r.MustArg("test").In("message").String(), nil
 								}),
 						),
 				),

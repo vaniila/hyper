@@ -30,13 +30,13 @@ func (v *schema) Subscription(o interfaces.Object) interfaces.Schema {
 func (v *schema) Compile() graphql.Schema {
 	c := graphql.SchemaConfig{}
 	if v.query != nil {
-		c.Query = v.query.Compile()
+		c.Query = v.query.ToObject()
 	}
 	if v.mut != nil {
-		c.Mutation = v.mut.Compile()
+		c.Mutation = v.mut.ToObject()
 	}
 	if v.sub != nil {
-		c.Subscription = v.sub.Compile()
+		c.Subscription = v.sub.ToObject()
 	}
 	i, err := graphql.NewSchema(c)
 	if err != nil {
