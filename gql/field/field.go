@@ -105,14 +105,14 @@ func (v *field) ResolveParameters(params map[string]interface{}, values []interf
 				}
 			}
 		}
-		switch data.has {
-		case true && data.parsed == nil:
-			if parsed, ok := router.Val(data.fmt, data.val); ok {
-				data.parsed = parsed
-			}
-		case false:
+		if !data.has {
 			if o, ok := conf.DefaultValue.([]byte); ok {
 				data.val = o
+			}
+		}
+		if data.val != nil && data.parsed == nil {
+			if parsed, ok := router.Val(data.fmt, data.val); ok {
+				data.parsed = parsed
 			}
 		}
 		values[i] = data
