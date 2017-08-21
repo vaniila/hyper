@@ -1,6 +1,7 @@
 package field
 
 import (
+	"strconv"
 	"time"
 
 	"github.com/graphql-go/graphql"
@@ -78,6 +79,18 @@ func (v *field) ResolveParameters(params map[string]interface{}, values []interf
 			case string:
 				data.val = []byte(o)
 				data.has = true
+			case int:
+				data.val = []byte(strconv.Itoa(o))
+				data.has = true
+				data.parsed = o
+			case float64:
+				data.val = []byte(strconv.FormatFloat(o, 'E', -1, 64))
+				data.has = true
+				data.parsed = o
+			case bool:
+				data.val = []byte(strconv.FormatBool(o))
+				data.has = true
+				data.parsed = o
 			case time.Time:
 				data.val = []byte(o.String())
 				data.has = true
