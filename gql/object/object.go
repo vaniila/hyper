@@ -1,12 +1,8 @@
 package object
 
 import (
-	"log"
-
 	"github.com/vaniila/hyper/gql/interfaces"
 )
-
-var objects = map[string]interfaces.Object{}
 
 type object struct {
 	name, description string
@@ -60,9 +56,5 @@ func (v *object) Config() interfaces.ObjectConfig {
 
 // New creates a new object
 func New(name string) interfaces.Object {
-	if _, ok := objects[name]; ok {
-		log.Fatalf("object with the name '%s' already exists", name)
-	}
-	objects[name] = &object{name: name}
-	return objects[name]
+	return &object{name: name}
 }

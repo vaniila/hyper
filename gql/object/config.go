@@ -58,6 +58,10 @@ func (v *objectconfig) Output() *graphql.Object {
 	return v.compiled.object
 }
 
+func (v *objectconfig) HasOutput() bool {
+	return v.compiled != nil && v.compiled.object != nil
+}
+
 func (v *objectconfig) Input() *graphql.InputObject {
 	if v.compiled == nil {
 		v.compiled = &compiled{}
@@ -75,4 +79,8 @@ func (v *objectconfig) Input() *graphql.InputObject {
 		})
 	}
 	return v.compiled.inputobject
+}
+
+func (v *objectconfig) HasInput() bool {
+	return v.compiled != nil && v.compiled.inputobject != nil
 }

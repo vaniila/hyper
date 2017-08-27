@@ -45,7 +45,9 @@ type ObjectConfig interface {
 	RecursiveFields() []Field
 	Args() []Argument
 	Output() *graphql.Object
+	HasOutput() bool
 	Input() *graphql.InputObject
+	HasInput() bool
 }
 
 // Field for GraphQL

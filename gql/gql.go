@@ -20,6 +20,8 @@ var (
 	Boolean  = graphql.Boolean
 	ID       = graphql.ID
 	DateTime = graphql.DateTime
+
+	objects = map[string]interfaces.Object{}
 )
 
 // Schema creates new schema
@@ -45,12 +47,15 @@ func Subscription(c interfaces.Object) schema.Option {
 // Root creates new root object
 func Root() interfaces.Object {
 	s := fmt.Sprintf("root%v", time.Now().UnixNano())
-	return object.New(s)
+	return Object(s)
 }
 
 // Object creates new object
 func Object(s string) interfaces.Object {
-	return object.New(s)
+	if _, ok := objects[s]; !ok {
+		objects[s] = object.New(s)
+	}
+	return objects[s]
 }
 
 // Field creates new field
@@ -73,4 +78,10 @@ func List(o interface{}) graphql.Output {
 	default:
 		return nil
 	}
+}
+
+// HasObject checks if object exists
+func HasObject(s string) bool {
+	_, ok := objects[s]
+	return ok
 }
