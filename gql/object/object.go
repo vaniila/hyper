@@ -30,6 +30,9 @@ func (v *object) RecursiveFields(fields ...interfaces.Field) interfaces.Object {
 	for _, field := range fields {
 		if field != nil {
 			v.recursiveFields = append(v.recursiveFields, field)
+			if v.conf != nil && v.conf.HasOutput() {
+				v.conf.Output().AddFieldConfig(field.Config().Name(), field.Config().Field())
+			}
 		}
 	}
 	return v
