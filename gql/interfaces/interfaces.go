@@ -17,42 +17,76 @@ type Schema interface {
 	Query(Object) Schema
 	Mutation(Object) Schema
 	Subscription(Object) Schema
-	Compile() graphql.Schema
+	Config() SchemaConfig
+}
+
+// SchemaConfig interface
+type SchemaConfig interface {
+	Query() Object
+	Mutation() Object
+	Subscription() Object
+	Schema() graphql.Schema
 }
 
 // Object for GraphQL
 type Object interface {
-	Name(string) Object
 	Description(string) Object
 	Fields(...Field) Object
+	RecursiveFields(...Field) Object
 	Args(...Argument) Object
-	ToObject() *graphql.Object
-	ToInputObject() *graphql.InputObject
-	ExportFields() []Field
-	ExportArgs() []Argument
+	Config() ObjectConfig
+}
+
+// ObjectConfig interface
+type ObjectConfig interface {
+	Name() string
+	Description() string
+	Fields() []Field
+	RecursiveFields() []Field
+	Args() []Argument
+	Output() *graphql.Object
+	Input() *graphql.InputObject
 }
 
 // Field for GraphQL
 type Field interface {
-	Name(string) Field
 	Description(string) Field
 	DeprecationReason(string) Field
 	Type(interface{}) Field
 	Args(...Argument) Field
 	Resolve(ResolveHandler) Field
-	Compile() *graphql.Field
+	Config() FieldConfig
+}
+
+// FieldConfig interface
+type FieldConfig interface {
+	Name() string
+	Description() string
+	DeprecationReason() string
+	Type() graphql.Output
+	Args() []Argument
+	Field() *graphql.Field
 }
 
 // Argument for GraphQL
 type Argument interface {
-	Name(string) Argument
 	Description(string) Argument
 	Type(interface{}) Argument
 	Default([]byte) Argument
 	Require(bool) Argument
-	InputObject() Object
-	ToArgumentConfig() (string, *graphql.ArgumentConfig)
-	ToInputObjectFieldConfig() (string, *graphql.InputObjectFieldConfig)
+	Config() ArgumentConfig
+}
+
+// ArgumentConfig interface
+type ArgumentConfig interface {
+	Name() string
+	Description() string
+	Type() graphql.Input
+	Object() Object
+	Default() []byte
+	Require() bool
+	ArgumentConfig() *graphql.ArgumentConfig
+	InputObjectFieldConfig() *graphql.InputObjectFieldConfig
 }
 
 // Resolver interface
@@ -62,15 +96,6 @@ type Resolver interface {
 	Source() interface{}
 	Arg(string) (Value, error)
 	MustArg(string) Value
-}
-
-// Type for GraphQL
-type Type interface {
-	Name(string) Type
-	Description(string) Type
-	Fields(...Field) Type
-	Input() graphql.Input
-	Output() graphql.Output
 }
 
 // Value for GraphQL
@@ -88,6 +113,8 @@ type Value interface {
 	MustF64() float64
 	MustBool() bool
 	MustTime() time.Time
+	MustArray() []interface{}
+	Any() interface{}
 	String() string
 }
 

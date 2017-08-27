@@ -172,6 +172,16 @@ func (v *value) MustTime() time.Time {
 	return v.parsed.(time.Time)
 }
 
+// MustArray returns value in array format
+func (v *value) MustArray() []interface{} {
+	return v.parsed.([]interface{})
+}
+
+// Any returns value
+func (v *value) Any() interface{} {
+	return v.parsed
+}
+
 // Has represents if input exists
 func (v *value) Has() bool {
 	return v.has

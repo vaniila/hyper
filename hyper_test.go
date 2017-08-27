@@ -9,6 +9,10 @@ import (
 	"github.com/vaniila/hyper/sync"
 )
 
+type person struct {
+	id int
+}
+
 func TestNew(t *testing.T) {
 
 	h := New(
@@ -55,6 +59,32 @@ func TestNew(t *testing.T) {
 			Require(false),
 	)
 
+	ur := gql.
+		Object("User").
+		Fields(
+			gql.
+				Field("id").
+				Type(gql.Int).
+				Resolve(func(r interfaces.Resolver) (interface{}, error) {
+					if p, ok := r.Source().(*person); ok {
+						return p.id, nil
+					}
+					return nil, nil
+				}),
+		)
+
+	fi := gql.
+		Field("friend").
+		Type(ur).
+		Resolve(func(r interfaces.Resolver) (interface{}, error) {
+			if p, ok := r.Source().(*person); ok {
+				return &person{id: p.id + 1}, nil
+			}
+			return nil, nil
+		})
+
+	ur.RecursiveFields(fi)
+
 	ro.
 		Post("/graphql").
 		Params(
@@ -66,6 +96,12 @@ func TestNew(t *testing.T) {
 					gql.
 						Root().
 						Fields(
+							gql.
+								Field("user").
+								Type(ur).
+								Resolve(func(r interfaces.Resolver) (interface{}, error) {
+									return &person{id: 0}, nil
+								}),
 							gql.
 								Field("hello").
 								Type(gql.String).

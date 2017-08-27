@@ -1,19 +1,19 @@
 package object
 
 import (
-	"github.com/graphql-go/graphql"
+	"log"
+
 	"github.com/vaniila/hyper/gql/interfaces"
 )
+
+var objects = map[string]interfaces.Object{}
 
 type object struct {
 	name, description string
 	args              []interfaces.Argument
 	fields            []interfaces.Field
-}
-
-func (v *object) Name(s string) interfaces.Object {
-	v.name = s
-	return v
+	recursiveFields   []interfaces.Field
+	conf              interfaces.ObjectConfig
 }
 
 func (v *object) Description(s string) interfaces.Object {
@@ -21,57 +21,48 @@ func (v *object) Description(s string) interfaces.Object {
 	return v
 }
 
-func (v *object) Fields(fs ...interfaces.Field) interfaces.Object {
-	v.fields = append(v.fields, fs...)
+func (v *object) Fields(fields ...interfaces.Field) interfaces.Object {
+	for _, field := range fields {
+		if field != nil {
+			v.fields = append(v.fields, field)
+		}
+	}
+	return v
+}
+
+func (v *object) RecursiveFields(fields ...interfaces.Field) interfaces.Object {
+	for _, field := range fields {
+		if field != nil {
+			v.recursiveFields = append(v.recursiveFields, field)
+		}
+	}
 	return v
 }
 
 func (v *object) Args(args ...interfaces.Argument) interfaces.Object {
-	v.args = append(v.args, args...)
+	for _, arg := range args {
+		if arg != nil {
+			v.args = append(v.args, arg)
+		}
+	}
 	return v
 }
 
-func (v *object) ToObject() *graphql.Object {
-	fields := graphql.Fields{}
-	for _, f := range v.fields {
-		v := f.Compile()
-		fields[v.Name] = v
+func (v *object) Config() interfaces.ObjectConfig {
+	if v.conf == nil {
+		v.conf = &objectconfig{
+			object:   v,
+			compiled: &compiled{},
+		}
 	}
-	c := graphql.ObjectConfig{
-		Name:        v.name,
-		Description: v.description,
-		Fields:      fields,
-	}
-	return graphql.NewObject(c)
-}
-
-func (v *object) ToInputObject() *graphql.InputObject {
-	args := graphql.InputObjectConfigFieldMap{}
-	for _, arg := range v.args {
-		k, v := arg.ToInputObjectFieldConfig()
-		args[k] = v
-	}
-	return graphql.NewInputObject(graphql.InputObjectConfig{
-		Name:        v.name,
-		Description: v.description,
-		Fields:      args,
-	})
-}
-
-func (v *object) ExportFields() []interfaces.Field {
-	return v.fields
-}
-
-func (v *object) ExportArgs() []interfaces.Argument {
-	return v.args
+	return v.conf
 }
 
 // New creates a new object
-func New(opt ...Option) interfaces.Object {
-	opts := newOptions(opt...)
-	return &object{
-		name:        opts.Name,
-		description: opts.Description,
-		fields:      opts.Fields,
+func New(name string) interfaces.Object {
+	if _, ok := objects[name]; ok {
+		log.Fatalf("object with the name '%s' already exists", name)
 	}
+	objects[name] = &object{name: name}
+	return objects[name]
 }

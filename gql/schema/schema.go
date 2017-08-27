@@ -1,15 +1,12 @@
 package schema
 
 import (
-	"log"
-
-	"github.com/graphql-go/graphql"
 	"github.com/vaniila/hyper/gql/interfaces"
 )
 
 type schema struct {
 	query, mut, sub interfaces.Object
-	conf            graphql.Schema
+	conf            interfaces.SchemaConfig
 }
 
 func (v *schema) Query(o interfaces.Object) interfaces.Schema {
@@ -27,22 +24,13 @@ func (v *schema) Subscription(o interfaces.Object) interfaces.Schema {
 	return v
 }
 
-func (v *schema) Compile() graphql.Schema {
-	c := graphql.SchemaConfig{}
-	if v.query != nil {
-		c.Query = v.query.ToObject()
+func (v *schema) Config() interfaces.SchemaConfig {
+	if v.conf == nil {
+		v.conf = &schemaconfig{
+			schema:   v,
+			compiled: new(compiled),
+		}
 	}
-	if v.mut != nil {
-		c.Mutation = v.mut.ToObject()
-	}
-	if v.sub != nil {
-		c.Subscription = v.sub.ToObject()
-	}
-	i, err := graphql.NewSchema(c)
-	if err != nil {
-		log.Fatal(err)
-	}
-	v.conf = i
 	return v.conf
 }
 
