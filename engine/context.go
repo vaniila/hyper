@@ -8,6 +8,7 @@ import (
 
 	"github.com/golang/protobuf/proto"
 	"github.com/ua-parser/uap-go/uaparser"
+	"github.com/vaniila/hyper/dataloader"
 	"github.com/vaniila/hyper/fault"
 	"github.com/vaniila/hyper/kv"
 	"github.com/vaniila/hyper/router"
@@ -29,6 +30,7 @@ type Context struct {
 	client               router.Client
 	cache                router.CacheAdaptor
 	message              router.MessageAdaptor
+	dataloader           dataloader.DataLoaders
 	kv                   router.KV
 	cookie               router.Cookie
 	header               router.Header
@@ -97,6 +99,10 @@ func (v *Context) Cache() router.CacheAdaptor {
 
 func (v *Context) Message() router.MessageAdaptor {
 	return v.message
+}
+
+func (v *Context) DataLoader(o interface{}) router.DataLoaderAdaptor {
+	return v.dataloader.Get(o)
 }
 
 func (v *Context) KV() router.KV {

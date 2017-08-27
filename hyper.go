@@ -22,6 +22,7 @@ func New(opts ...Option) *Hyper {
 		engine.Proto(o.Protocol),
 		engine.Cache(o.Cache),
 		engine.Message(o.Message),
+		engine.DataLoader(o.DataLoader),
 		engine.Router(o.Router),
 		engine.Websocket(w),
 		engine.AllowedOrigins(o.AllowedOrigins),
@@ -34,13 +35,14 @@ func New(opts ...Option) *Hyper {
 		engine.OptionsPassthrough(o.OptionsPassthrough),
 	)
 	return &Hyper{
-		id:        o.ID,
-		addr:      o.Addr,
-		cache:     o.Cache,
-		message:   o.Message,
-		sync:      o.Sync,
-		router:    o.Router,
-		engine:    e,
-		websocket: w,
+		id:         o.ID,
+		addr:       o.Addr,
+		cache:      o.Cache,
+		message:    o.Message,
+		dataloader: o.DataLoader,
+		sync:       o.Sync,
+		router:     o.Router,
+		engine:     e,
+		websocket:  w,
 	}
 }

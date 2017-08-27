@@ -1,8 +1,10 @@
 package hyper
 
 import (
+	"context"
 	"testing"
 
+	"github.com/vaniila/hyper/dataloader"
 	"github.com/vaniila/hyper/gql"
 	"github.com/vaniila/hyper/gql/interfaces"
 	"github.com/vaniila/hyper/router"
@@ -15,9 +17,20 @@ type person struct {
 
 func TestNew(t *testing.T) {
 
+	var a = dataloader.BatchLoader(func(ctx context.Context, keys []string) []dataloader.Result {
+		return dataloader.ForEach(keys, func(key string) dataloader.Result {
+			return dataloader.Resolve(2)
+		})
+	})
+
+	d := dataloader.New(
+		dataloader.WithLoaders(a),
+	)
+
 	h := New(
 		Addr(":4000"),
 		HTTP2(),
+		DataLoader(d),
 	)
 
 	ws := h.Sync()

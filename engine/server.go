@@ -8,6 +8,7 @@ import (
 	"github.com/pressly/chi/middleware"
 	"github.com/ua-parser/uap-go/uaparser"
 	"github.com/vaniila/hyper/cache"
+	"github.com/vaniila/hyper/dataloader"
 	"github.com/vaniila/hyper/fault"
 	"github.com/vaniila/hyper/message"
 	"github.com/vaniila/hyper/router"
@@ -20,16 +21,17 @@ import (
 )
 
 type server struct {
-	id        string
-	addr      string
-	protocol  Protocol
-	cors      *cors
-	cache     cache.Service
-	message   message.Service
-	router    router.Service
-	websocket websocket.Service
-	uaparser  *uaparser.Parser
-	ln        *net.Listener
+	id         string
+	addr       string
+	protocol   Protocol
+	cors       *cors
+	cache      cache.Service
+	message    message.Service
+	dataloader dataloader.Service
+	router     router.Service
+	websocket  websocket.Service
+	uaparser   *uaparser.Parser
+	ln         *net.Listener
 }
 
 func (v *server) handleParameters(c *Context, route router.RouteConfig, params []router.Param) {
@@ -150,19 +152,20 @@ func (v *server) handlerRoute(conf router.RouteConfig) func(http.ResponseWriter,
 			uaparser: v.uaparser,
 		}
 		c := &Context{
-			machineID: v.id,
-			processID: newID(),
-			ctx:       r.Context(),
-			identity:  new(identity),
-			req:       r,
-			res:       w,
-			client:    client,
-			values:    make([]router.Value, 0),
-			params:    conf.Params(),
-			warnings:  make([]fault.Cause, 0),
-			cache:     v.cache,
-			message:   v.message,
-			uaparser:  v.uaparser,
+			machineID:  v.id,
+			processID:  newID(),
+			ctx:        r.Context(),
+			identity:   new(identity),
+			req:        r,
+			res:        w,
+			client:     client,
+			values:     make([]router.Value, 0),
+			params:     conf.Params(),
+			warnings:   make([]fault.Cause, 0),
+			cache:      v.cache,
+			message:    v.message,
+			dataloader: v.dataloader.Instance(),
+			uaparser:   v.uaparser,
 		}
 		c.ctx = context.WithValue(c.ctx, router.RequestContext, c)
 		h := &Header{

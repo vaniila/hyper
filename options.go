@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/vaniila/hyper/cache"
+	"github.com/vaniila/hyper/dataloader"
 	"github.com/vaniila/hyper/engine"
 	"github.com/vaniila/hyper/message"
 	"github.com/vaniila/hyper/router"
@@ -37,6 +38,9 @@ type Options struct {
 
 	// Message broker
 	Message message.Service
+
+	// DataLoader
+	DataLoader dataloader.Service
 
 	// before and after funcs
 	BeforeStart []func() error
@@ -109,6 +113,11 @@ func newOptions(opts ...Option) Options {
 			message.ID(opt.ID),
 		)
 	}
+	if opt.DataLoader == nil {
+		opt.DataLoader = dataloader.New(
+			dataloader.ID(opt.ID),
+		)
+	}
 	if opt.Sync == nil {
 		opt.Sync = sync.New(
 			sync.ID(opt.ID),
@@ -177,6 +186,13 @@ func Router(r router.Service) Option {
 func Message(m message.Service) Option {
 	return func(o *Options) {
 		o.Message = m
+	}
+}
+
+// DataLoader to set custom dataloader
+func DataLoader(d dataloader.Service) Option {
+	return func(o *Options) {
+		o.DataLoader = d
 	}
 }
 

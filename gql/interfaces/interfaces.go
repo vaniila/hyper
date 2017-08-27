@@ -135,6 +135,7 @@ type Context interface {
 	Client() router.Client
 	Cache() router.CacheAdaptor
 	Message() router.MessageAdaptor
+	DataLoader(interface{}) router.DataLoaderAdaptor
 	KV() router.KV
 	Cookie() router.Cookie
 	Header() router.Header

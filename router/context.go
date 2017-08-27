@@ -44,6 +44,7 @@ type Context interface {
 	Client() Client
 	Cache() CacheAdaptor
 	Message() MessageAdaptor
+	DataLoader(interface{}) DataLoaderAdaptor
 	KV() KV
 	Cookie() Cookie
 	Header() Header
@@ -85,6 +86,15 @@ type CacheAdaptor interface {
 type MessageAdaptor interface {
 	Emit([]byte, []byte) error
 	Listen([]byte, message.Handler) message.Close
+}
+
+// DataLoader interface
+type DataLoaderAdaptor interface {
+	Load(context.Context, string) (interface{}, error)
+	LoadMany(context.Context, []string) ([]interface{}, []error)
+	Clear(string)
+	ClearAll()
+	Prime(string, interface{})
 }
 
 // KV key value interface

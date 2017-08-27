@@ -7,6 +7,7 @@ import (
 	"syscall"
 
 	"github.com/vaniila/hyper/cache"
+	"github.com/vaniila/hyper/dataloader"
 	"github.com/vaniila/hyper/engine"
 	"github.com/vaniila/hyper/message"
 	"github.com/vaniila/hyper/router"
@@ -16,14 +17,15 @@ import (
 
 // Hyper service
 type Hyper struct {
-	id        string
-	addr      string
-	cache     cache.Service
-	message   message.Service
-	router    router.Service
-	engine    engine.Service
-	sync      sync.Service
-	websocket websocket.Service
+	id         string
+	addr       string
+	cache      cache.Service
+	message    message.Service
+	dataloader dataloader.Service
+	router     router.Service
+	engine     engine.Service
+	sync       sync.Service
+	websocket  websocket.Service
 }
 
 func (v *Hyper) start() error {
@@ -31,6 +33,9 @@ func (v *Hyper) start() error {
 		return err
 	}
 	if err := v.message.Start(); err != nil {
+		return err
+	}
+	if err := v.dataloader.Start(); err != nil {
 		return err
 	}
 	if err := v.router.Start(); err != nil {
@@ -66,6 +71,9 @@ func (v *Hyper) stop() error {
 		return err
 	}
 	if err := v.message.Stop(); err != nil {
+		return err
+	}
+	if err := v.dataloader.Stop(); err != nil {
 		return err
 	}
 	return nil
