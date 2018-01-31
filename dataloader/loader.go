@@ -62,7 +62,7 @@ type ThunkMany func() ([]interface{}, []error)
 
 // type used to on input channel
 type batchRequest struct {
-	key     string
+	key     interface{}
 	channel chan Result
 }
 
@@ -79,7 +79,7 @@ func newBatchedLoader(batchFn Batch, opts Options) DataLoader {
 }
 
 // Load load/resolves the given key, returning a channel that will contain the value and error
-func (l *Loader) Load(ctx context.Context, key string) (interface{}, error) {
+func (l *Loader) Load(ctx context.Context, key interface{}) (interface{}, error) {
 	c := make(chan Result, 1)
 	var result struct {
 		mu    sync.RWMutex
@@ -151,7 +151,7 @@ func (l *Loader) Load(ctx context.Context, key string) (interface{}, error) {
 }
 
 // LoadMany loads mulitiple keys, returning a thunk (type: ThunkMany) that will resolve the keys passed in.
-func (l *Loader) LoadMany(ctx context.Context, keys []string) ([]interface{}, []error) {
+func (l *Loader) LoadMany(ctx context.Context, keys []interface{}) ([]interface{}, []error) {
 	length := len(keys)
 	data := make([]interface{}, length)
 	errors := make([]error, length)
@@ -200,7 +200,7 @@ func (l *Loader) LoadMany(ctx context.Context, keys []string) ([]interface{}, []
 }
 
 // Clear clears the value at `key` from the cache, it it exsits. Returs self for method chaining
-func (l *Loader) Clear(key string) {
+func (l *Loader) Clear(key interface{}) {
 	l.cacheLock.Lock()
 	l.cache.Delete(key)
 	l.cacheLock.Unlock()
@@ -216,7 +216,7 @@ func (l *Loader) ClearAll() {
 
 // Prime adds the provided key and value to the cache. If the key already exists, no change is made.
 // Returns self for method chaining
-func (l *Loader) Prime(key string, value interface{}) {
+func (l *Loader) Prime(key interface{}, value interface{}) {
 	if _, ok := l.cache.Get(key); !ok {
 		thunk := func() (interface{}, error) {
 			return value, nil
@@ -261,7 +261,7 @@ func (b *batcher) end() {
 
 // execute the batch of all items in queue
 func (b *batcher) batch(ctx context.Context) {
-	var keys []string
+	var keys []interface{}
 	var reqs []*batchRequest
 
 	for item := range b.input {

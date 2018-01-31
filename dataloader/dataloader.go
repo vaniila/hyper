@@ -7,11 +7,11 @@ import (
 
 // Batch type
 type Batch interface {
-	Handle(context.Context, []string) []Result
+	Handle(context.Context, []interface{}) []Result
 }
 
 // Each type
-type Each func(string) Result
+type Each func(interface{}) Result
 
 // Service interface
 type Service interface {
@@ -27,11 +27,11 @@ type DataLoaders interface {
 
 // DataLoader interface
 type DataLoader interface {
-	Load(context.Context, string) (interface{}, error)
-	LoadMany(context.Context, []string) ([]interface{}, []error)
-	Clear(string)
+	Load(context.Context, interface{}) (interface{}, error)
+	LoadMany(context.Context, []interface{}) ([]interface{}, []error)
+	Clear(interface{})
 	ClearAll()
-	Prime(string, interface{})
+	Prime(interface{}, interface{})
 }
 
 // Result interface
@@ -72,7 +72,7 @@ func Reject(err error) Result {
 }
 
 // ForEach helper
-func ForEach(keys []string, fn Each) []Result {
+func ForEach(keys []interface{}, fn Each) []Result {
 
 	len := len(keys)
 	res := make([]Result, len)
@@ -81,7 +81,7 @@ func ForEach(keys []string, fn Each) []Result {
 	wg.Add(len)
 
 	for i, key := range keys {
-		go func(idx int, key string) {
+		go func(idx int, key interface{}) {
 			defer wg.Done()
 			res[idx] = fn(key)
 		}(i, key)

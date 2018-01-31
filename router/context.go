@@ -90,11 +90,11 @@ type MessageAdaptor interface {
 
 // DataLoader interface
 type DataLoaderAdaptor interface {
-	Load(context.Context, string) (interface{}, error)
-	LoadMany(context.Context, []string) ([]interface{}, []error)
-	Clear(string)
+	Load(context.Context, interface{}) (interface{}, error)
+	LoadMany(context.Context, []interface{}) ([]interface{}, []error)
+	Clear(interface{})
 	ClearAll()
-	Prime(string, interface{})
+	Prime(interface{}, interface{})
 }
 
 // KV key value interface

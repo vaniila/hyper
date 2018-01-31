@@ -17,8 +17,8 @@ type person struct {
 
 func TestNew(t *testing.T) {
 
-	var a = dataloader.BatchLoader(func(ctx context.Context, keys []string) []dataloader.Result {
-		return dataloader.ForEach(keys, func(key string) dataloader.Result {
+	var a = dataloader.BatchLoader(func(ctx context.Context, keys []interface{}) []dataloader.Result {
+		return dataloader.ForEach(keys, func(key interface{}) dataloader.Result {
 			return dataloader.Resolve(2)
 		})
 	})
