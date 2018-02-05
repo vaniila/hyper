@@ -38,9 +38,22 @@ type SchemaConfig interface {
 	Schema() graphql.Schema
 }
 
+// Union for GraphQL
+type Union interface {
+	Description(string) Union
+	Resolve(interface{}, Object) Union
+	Config() UnionConfig
+}
+
+// UnionConfig interface
+type UnionConfig interface {
+	Name() string
+	Description() string
+	Union() *graphql.Union
+}
+
 // Scalar for GraphQL
 type Scalar interface {
-	Name(string) Scalar
 	Description(string) Scalar
 	Serialize(ScalarSerializeHandler) Scalar
 	ParseValue(ScalarParseValueHandler) Scalar
@@ -59,7 +72,6 @@ type ScalarConfig interface {
 
 // Enum for GraphQL
 type Enum interface {
-	Name(string) Enum
 	Description() Enum
 	Values(...EnumOption) Enum
 }
@@ -73,7 +85,6 @@ type EnumConfig interface {
 
 // EnumOption for GraphQL
 type EnumOption interface {
-	Name(string) EnumOption
 	Description(string) EnumOption
 	Value(interface{}) EnumOption
 	Deprecation(string) EnumOption
@@ -134,7 +145,7 @@ type FieldConfig interface {
 type Argument interface {
 	Description(string) Argument
 	Type(interface{}) Argument
-	Default([]byte) Argument
+	Default(interface{}) Argument
 	Require(bool) Argument
 	Config() ArgumentConfig
 }
@@ -145,7 +156,7 @@ type ArgumentConfig interface {
 	Description() string
 	Type() graphql.Input
 	Object() Object
-	Default() []byte
+	Default() interface{}
 	Require() bool
 	ArgumentConfig() *graphql.ArgumentConfig
 	InputObjectFieldConfig() *graphql.InputObjectFieldConfig

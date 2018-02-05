@@ -10,6 +10,7 @@ import (
 	"github.com/vaniila/hyper/gql/interfaces"
 	"github.com/vaniila/hyper/gql/object"
 	"github.com/vaniila/hyper/gql/schema"
+	"github.com/vaniila/hyper/gql/union"
 )
 
 // builtin graphql scalars
@@ -71,6 +72,8 @@ func Arg(s string) interfaces.Argument {
 // List creates a output list field
 func List(o interface{}) graphql.Output {
 	switch v := o.(type) {
+	case interfaces.Union:
+		return graphql.NewList(v.Config().Union())
 	case interfaces.Object:
 		return graphql.NewList(v.Config().Output())
 	case graphql.Type:
@@ -90,6 +93,11 @@ func Multiple(o interface{}) graphql.Input {
 	default:
 		return nil
 	}
+}
+
+// Union creates an union
+func Union(s string) interfaces.Union {
+	return union.New(s)
 }
 
 // HasObject checks if object exists

@@ -30,7 +30,7 @@ func (v *argument) Type(o interface{}) interfaces.Argument {
 	return v
 }
 
-func (v *argument) Default(o []byte) interfaces.Argument {
+func (v *argument) Default(o interface{}) interfaces.Argument {
 	v.def = o
 	return v
 }

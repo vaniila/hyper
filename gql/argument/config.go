@@ -31,8 +31,8 @@ func (v *argumentconfig) Object() interfaces.Object {
 	return v.argument.obj
 }
 
-func (v *argumentconfig) Default() []byte {
-	return v.argument.def.([]byte)
+func (v *argumentconfig) Default() interface{} {
+	return v.argument.def
 }
 
 func (v *argumentconfig) Require() bool {

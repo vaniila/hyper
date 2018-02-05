@@ -15,6 +15,22 @@ type person struct {
 	id int
 }
 
+type dataA struct {
+	a string
+}
+
+type dataB struct {
+	b string
+}
+
+var dataArray = []interface{}{
+	&dataA{a: "data-1-a"},
+	&dataA{a: "data-2-a"},
+	&dataB{b: "data-3-b"},
+	&dataA{a: "data-4-a"},
+	&dataB{b: "data-5-b"},
+}
+
 func TestNew(t *testing.T) {
 
 	var a = dataloader.BatchLoader(func(ctx context.Context, keys []interface{}) []dataloader.Result {
@@ -72,6 +88,39 @@ func TestNew(t *testing.T) {
 			Require(false),
 	)
 
+	da := gql.
+		Object("DataA").
+		Fields(
+			gql.
+				Field("a").
+				Type(gql.String).
+				Resolve(func(r interfaces.Resolver) (interface{}, error) {
+					if p, ok := r.Source().(*dataA); ok {
+						return p.a, nil
+					}
+					return nil, nil
+				}),
+		)
+
+	db := gql.
+		Object("DataB").
+		Fields(
+			gql.
+				Field("b").
+				Type(gql.String).
+				Resolve(func(r interfaces.Resolver) (interface{}, error) {
+					if p, ok := r.Source().(*dataB); ok {
+						return p.b, nil
+					}
+					return nil, nil
+				}),
+		)
+
+	dd := gql.
+		Union("Data").
+		Resolve(&dataA{}, da).
+		Resolve(new(dataB), db)
+
 	ur := gql.
 		Object("User").
 		Fields(
@@ -83,6 +132,12 @@ func TestNew(t *testing.T) {
 						return p.id, nil
 					}
 					return nil, nil
+				}),
+			gql.
+				Field("data").
+				Type(gql.List(dd)).
+				Resolve(func(r interfaces.Resolver) (interface{}, error) {
+					return dataArray, nil
 				}),
 		)
 
@@ -122,6 +177,7 @@ func TestNew(t *testing.T) {
 									gql.
 										Arg("input").
 										Type(gql.String).
+										Default("a default input").
 										Require(false),
 									gql.
 										Arg("test").
@@ -131,14 +187,21 @@ func TestNew(t *testing.T) {
 												Object("HelloInput").
 												Args(
 													gql.
-														Arg("message").
-														Description("some message").
-														Type(gql.String),
+														Arg("messageA").
+														Description("the message A").
+														Type(gql.String).
+														Require(false),
+													gql.
+														Arg("messageB").
+														Description("the message B").
+														Type(gql.String).
+														Default("hello world").
+														Require(false),
 												),
 										),
 								).
 								Resolve(func(r interfaces.Resolver) (interface{}, error) {
-									return r.MustArg("test").In("message").String(), nil
+									return r.MustArg("test").In("messageB").String(), nil
 								}),
 						),
 				),
