@@ -68,11 +68,23 @@ func Arg(s string) interfaces.Argument {
 	return argument.New(s)
 }
 
-// List creates a list field
+// List creates a output list field
 func List(o interface{}) graphql.Output {
 	switch v := o.(type) {
 	case interfaces.Object:
 		return graphql.NewList(v.Config().Output())
+	case graphql.Type:
+		return graphql.NewList(v)
+	default:
+		return nil
+	}
+}
+
+// Multiple creates a input list field
+func Multiple(o interface{}) graphql.Input {
+	switch v := o.(type) {
+	case interfaces.Object:
+		return graphql.NewList(v.Config().Input())
 	case graphql.Type:
 		return graphql.NewList(v)
 	default:

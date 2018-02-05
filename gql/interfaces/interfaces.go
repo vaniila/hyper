@@ -6,11 +6,21 @@ import (
 	"time"
 
 	"github.com/graphql-go/graphql"
+	"github.com/graphql-go/graphql/language/ast"
 	"github.com/vaniila/hyper/router"
 )
 
 // ResolveHandler for field resolve
 type ResolveHandler func(Resolver) (interface{}, error)
+
+// ScalarSerializeHandler for scalar serialize resolver
+type ScalarSerializeHandler func(interface{}) (interface{}, error)
+
+// ScalarParseValueHandler for scalar parse value resolver
+type ScalarParseValueHandler func(interface{}) (interface{}, error)
+
+// ScalarParseLiteralHandler for scalar parse literal resolver
+type ScalarParseLiteralHandler func(ast.Value) (interface{}, error)
 
 // Schema for GraphQL
 type Schema interface {
@@ -26,6 +36,56 @@ type SchemaConfig interface {
 	Mutation() Object
 	Subscription() Object
 	Schema() graphql.Schema
+}
+
+// Scalar for GraphQL
+type Scalar interface {
+	Name(string) Scalar
+	Description(string) Scalar
+	Serialize(ScalarSerializeHandler) Scalar
+	ParseValue(ScalarParseValueHandler) Scalar
+	ParseLiteral(ScalarParseLiteralHandler) Scalar
+	Config() ScalarConfig
+}
+
+// ScalarConfig interface
+type ScalarConfig interface {
+	Name() string
+	Description() string
+	Serialize(interface{}) (interface{}, error)
+	ParseValue(interface{}) (interface{}, error)
+	ParseLiteral(ast.Value) (interface{}, error)
+}
+
+// Enum for GraphQL
+type Enum interface {
+	Name(string) Enum
+	Description() Enum
+	Values(...EnumOption) Enum
+}
+
+// EnumConfig interface
+type EnumConfig interface {
+	Name() string
+	Description() string
+	Values() []EnumOption
+}
+
+// EnumOption for GraphQL
+type EnumOption interface {
+	Name(string) EnumOption
+	Description(string) EnumOption
+	Value(interface{}) EnumOption
+	Deprecation(string) EnumOption
+	Config() EnumOptionConfig
+}
+
+// EnumOptionConfig interface
+type EnumOptionConfig interface {
+	Name() string
+	Description() string
+	Value() interface{}
+	Deprecation() string
 }
 
 // Object for GraphQL
