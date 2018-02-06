@@ -107,9 +107,14 @@ func (v *fieldconfig) Resolve(params map[string]interface{}, values []interfaces
 		}
 		if k, ok := params[data.key]; ok {
 			switch o := k.(type) {
+			case []byte:
+				data.val = o
+				data.has = true
+				data.parsed = o
 			case string:
 				data.val = []byte(o)
 				data.has = true
+				data.parsed = o
 			case int:
 				data.val = []byte(strconv.Itoa(o))
 				data.has = true
@@ -135,6 +140,11 @@ func (v *fieldconfig) Resolve(params map[string]interface{}, values []interfaces
 					data.parsed = arr
 				}
 			case []interface{}:
+				data.val = nil
+				data.has = true
+				data.parsed = k
+			case nil:
+			default:
 				data.val = nil
 				data.has = true
 				data.parsed = k
