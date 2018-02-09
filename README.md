@@ -25,7 +25,7 @@ This project is distributed under the MIT license found in the [LICENSE](./LICEN
 ```
 The MIT License (MIT)
 
-Copyright (c) 2016 Vaniila Inc
+Copyright (c) 2018 Vaniila Inc
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
