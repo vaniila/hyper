@@ -59,7 +59,7 @@ var schema = gql.
 				Object("Subscription").
 				Fields(
 					gql.
-						Field("note").
+						Field("noteUpdated").
 						Type(object).
 						Args(
 							gql.
@@ -133,7 +133,7 @@ var schema = gql.
 									slice := buf.Bytes()
 									r.Context().GQLSubscription().Emit(
 										event.New(
-											event.Field("note"),
+											event.Field("noteUpdated"),
 											event.Payload(slice),
 											event.Filters(map[string]interface{}{
 												"id": id,
