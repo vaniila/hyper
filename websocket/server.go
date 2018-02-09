@@ -3,6 +3,7 @@ package websocket
 import (
 	"github.com/gorilla/websocket"
 	"github.com/vaniila/hyper/cache"
+	"github.com/vaniila/hyper/gws"
 	"github.com/vaniila/hyper/message"
 	"github.com/vaniila/hyper/router"
 	"github.com/vaniila/hyper/sync"
@@ -11,6 +12,7 @@ import (
 type server struct {
 	id       string
 	sync     sync.Service
+	gws      gws.Service
 	cache    cache.Service
 	message  message.Service
 	upgrader websocket.Upgrader
@@ -30,8 +32,15 @@ func (v *server) Handle(c router.Context) {
 		return
 	}
 	defer conn.Close()
-	if v.sync != nil {
-		v.sync.Handle(c, conn)
+	switch conn.Subprotocol() {
+	case "graphql-ws":
+		if v.gws != nil {
+			v.gws.Handle(c, conn)
+		}
+	default:
+		if v.sync != nil {
+			v.sync.Handle(c, conn)
+		}
 	}
 }
 

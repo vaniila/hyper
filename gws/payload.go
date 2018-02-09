@@ -47,7 +47,7 @@ type DataMessagePayload struct {
 type OperationMessage struct {
 	ID      string      `json:"id,omitempty"`
 	Type    string      `json:"type"`
-	Payload interface{} `json:"payload"`
+	Payload interface{} `json:"payload,omitempty"`
 }
 
 func (msg *OperationMessage) String() string {

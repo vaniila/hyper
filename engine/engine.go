@@ -16,6 +16,7 @@ func New(opts ...Option) Service {
 		protocol:   o.Protocol,
 		cache:      o.Cache,
 		message:    o.Message,
+		gws:        o.GQLSubscription,
 		dataloader: o.DataLoader,
 		router:     o.Router,
 		websocket:  o.Websocket,

@@ -7,6 +7,7 @@ import (
 	"github.com/vaniila/hyper/cache"
 	"github.com/vaniila/hyper/dataloader"
 	"github.com/vaniila/hyper/engine"
+	"github.com/vaniila/hyper/gws"
 	"github.com/vaniila/hyper/message"
 	"github.com/vaniila/hyper/router"
 	"github.com/vaniila/hyper/sync"
@@ -29,6 +30,9 @@ type Options struct {
 
 	// sync engine
 	Sync sync.Service
+
+	// graphql subscription engine
+	GQLSubscription gws.Service
 
 	// Cache engine
 	Cache cache.Service
@@ -123,6 +127,13 @@ func newOptions(opts ...Option) Options {
 			sync.ID(opt.ID),
 			sync.Cache(opt.Cache),
 			sync.Message(opt.Message),
+		)
+	}
+	if opt.GQLSubscription == nil {
+		opt.GQLSubscription = gws.New(
+			gws.ID(opt.ID),
+			gws.Cache(opt.Cache),
+			gws.Message(opt.Message),
 		)
 	}
 	if opt.Router == nil {

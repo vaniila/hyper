@@ -23,6 +23,11 @@ func (v *resolve) Params() graphql.ResolveParams {
 }
 
 func (v *resolve) Source() interface{} {
+	if m, ok := v.params.Source.(map[string]interface{}); ok {
+		if d, ok := m["$subscription_payload$"]; ok {
+			return d
+		}
+	}
 	return v.params.Source
 }
 

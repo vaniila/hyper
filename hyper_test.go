@@ -2,14 +2,30 @@ package hyper
 
 import (
 	"context"
+	"encoding/json"
+	"strconv"
 	"testing"
+	"time"
 
 	"github.com/vaniila/hyper/dataloader"
 	"github.com/vaniila/hyper/gql"
+	"github.com/vaniila/hyper/gql/event"
 	"github.com/vaniila/hyper/gql/interfaces"
 	"github.com/vaniila/hyper/router"
 	"github.com/vaniila/hyper/sync"
 )
+
+type note struct {
+	ID      string `json:"id"`
+	Content string `json:"content"`
+}
+
+var notes = []*note{
+	{
+		ID:      "1",
+		Content: "default",
+	},
+}
 
 type person struct {
 	id int
@@ -50,6 +66,8 @@ func TestNew(t *testing.T) {
 	)
 
 	ws := h.Sync()
+	gw := h.Gws()
+	ro := h.Router()
 
 	ws.BeforeOpen(func(c sync.Context) {
 		c.Identity().SetID(100)
@@ -79,14 +97,35 @@ func TestNew(t *testing.T) {
 		Catch(func(m []byte, n sync.Channel, c sync.Context) {
 		})
 
-	ro := h.Router()
-
 	ro.Params(
 		Header("Authorization").
 			Format(Text).
 			Doc(`Authorization`).
 			Require(false),
 	)
+
+	nt := gql.
+		Object("Note").
+		Fields(
+			gql.
+				Field("id").
+				Type(gql.ID).
+				Resolve(func(r interfaces.Resolver) (interface{}, error) {
+					if p, ok := r.Source().(*note); ok {
+						return p.ID, nil
+					}
+					return nil, nil
+				}),
+			gql.
+				Field("content").
+				Type(gql.String).
+				Resolve(func(r interfaces.Resolver) (interface{}, error) {
+					if p, ok := r.Source().(*note); ok {
+						return p.Content, nil
+					}
+					return nil, nil
+				}),
+		)
 
 	da := gql.
 		Object("DataA").
@@ -153,60 +192,160 @@ func TestNew(t *testing.T) {
 
 	ur.RecursiveFields(fi)
 
+	sc := gql.Schema(
+		gql.Subscription(
+			gql.
+				Root().
+				Fields(
+					gql.
+						Field("note").
+						Type(nt).
+						Args(
+							gql.
+								Arg("id").
+								Type(gql.ID).
+								Require(true),
+						).
+						Resolve(func(r interfaces.Resolver) (interface{}, error) {
+							if b, ok := r.Source().([]byte); ok {
+								var note = &note{}
+								json.Unmarshal(b, note)
+								return note, nil
+							}
+							return nil, nil
+						}),
+				),
+		),
+		gql.Query(
+			gql.
+				Root().
+				Fields(
+					gql.
+						Field("note").
+						Type(nt).
+						Args(
+							gql.
+								Arg("id").
+								Type(gql.ID).
+								Require(true),
+						).
+						Resolve(func(r interfaces.Resolver) (interface{}, error) {
+							for _, note := range notes {
+								if note.ID == r.MustArg("id").String() {
+									return note, nil
+								}
+							}
+							return nil, nil
+						}),
+					gql.
+						Field("user").
+						Type(ur).
+						Resolve(func(r interfaces.Resolver) (interface{}, error) {
+							return &person{id: 0}, nil
+						}),
+					gql.
+						Field("hello").
+						Type(gql.String).
+						Args(
+							gql.
+								Arg("input").
+								Type(gql.String).
+								Default("a default input").
+								Require(false),
+							gql.
+								Arg("test").
+								Require(true).
+								Type(
+									gql.
+										Object("HelloInput").
+										Args(
+											gql.
+												Arg("messageA").
+												Description("the message A").
+												Type(gql.String).
+												Require(false),
+											gql.
+												Arg("messageB").
+												Description("the message B").
+												Type(gql.String).
+												Default("hello world").
+												Require(false),
+										),
+								),
+						).
+						Resolve(func(r interfaces.Resolver) (interface{}, error) {
+							return r.MustArg("test").In("messageB").String(), nil
+						}),
+				),
+		),
+		gql.Mutation(
+			gql.
+				Root().
+				Fields(
+					gql.
+						Field("addNote").
+						Type(nt).
+						Args(
+							gql.
+								Arg("content").
+								Type(gql.String).
+								Require(true),
+						).
+						Resolve(func(r interfaces.Resolver) (interface{}, error) {
+							id := strconv.Itoa(int(time.Now().Unix()))
+							et := &note{
+								ID:      id,
+								Content: r.MustArg("content").String(),
+							}
+							notes = append(notes, et)
+							return et, nil
+						}),
+					gql.
+						Field("updateNote").
+						Type(nt).
+						Args(
+							gql.
+								Arg("id").
+								Type(gql.ID).
+								Require(true),
+							gql.
+								Arg("content").
+								Type(gql.String).
+								Require(true),
+						).
+						Resolve(func(r interfaces.Resolver) (interface{}, error) {
+							for _, note := range notes {
+								if note.ID == r.MustArg("id").String() {
+									note.Content = r.MustArg("content").String()
+									o, _ := json.Marshal(note)
+									r.Context().
+										GQLSubscription().
+										Emit(
+											event.New(
+												event.Field("note"),
+												event.Payload(o),
+												event.Filters(map[string]interface{}{
+													"id": note.ID,
+												}),
+											),
+										)
+									return note, nil
+								}
+							}
+							return nil, nil
+						}),
+				),
+		),
+	)
+
+	gw.Schema(sc)
+
 	ro.
 		Post("/graphql").
 		Params(
 			append(GQLQueries, GQLBodies...)...,
 		).
-		Handle(GraphQL(
-			gql.Schema(
-				gql.Query(
-					gql.
-						Root().
-						Fields(
-							gql.
-								Field("user").
-								Type(ur).
-								Resolve(func(r interfaces.Resolver) (interface{}, error) {
-									return &person{id: 0}, nil
-								}),
-							gql.
-								Field("hello").
-								Type(gql.String).
-								Args(
-									gql.
-										Arg("input").
-										Type(gql.String).
-										Default("a default input").
-										Require(false),
-									gql.
-										Arg("test").
-										Require(true).
-										Type(
-											gql.
-												Object("HelloInput").
-												Args(
-													gql.
-														Arg("messageA").
-														Description("the message A").
-														Type(gql.String).
-														Require(false),
-													gql.
-														Arg("messageB").
-														Description("the message B").
-														Type(gql.String).
-														Default("hello world").
-														Require(false),
-												),
-										),
-								).
-								Resolve(func(r interfaces.Resolver) (interface{}, error) {
-									return r.MustArg("test").In("messageB").String(), nil
-								}),
-						),
-				),
-			),
-		))
+		Handle(GraphQL(sc))
 
 	ro.
 		Get("/graphiql/*").

@@ -30,6 +30,7 @@ type Context struct {
 	client               router.Client
 	cache                router.CacheAdaptor
 	message              router.MessageAdaptor
+	gqlsubscription      router.GQLSubscriptionAdaptor
 	dataloader           dataloader.DataLoaders
 	kv                   router.KV
 	cookie               router.Cookie
@@ -99,6 +100,10 @@ func (v *Context) Cache() router.CacheAdaptor {
 
 func (v *Context) Message() router.MessageAdaptor {
 	return v.message
+}
+
+func (v *Context) GQLSubscription() router.GQLSubscriptionAdaptor {
+	return v.gqlsubscription
 }
 
 func (v *Context) DataLoader(o interface{}) router.DataLoaderAdaptor {

@@ -19,9 +19,11 @@ func New(opts ...Option) Service {
 	s := &server{
 		id:      o.ID,
 		sync:    o.Sync,
+		gws:     o.GQLSubscription,
 		cache:   o.Cache,
 		message: o.Message,
 		upgrader: websocket.Upgrader{
+			Subprotocols:      []string{"graphql-ws", "hyper-ws"},
 			HandshakeTimeout:  o.HandshakeTimeout,
 			ReadBufferSize:    o.ReadBufferSize,
 			WriteBufferSize:   o.WriteBufferSize,

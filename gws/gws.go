@@ -30,6 +30,7 @@ type Service interface {
 	Subscriptions() Store
 	Handle(router.Context, *websocket.Conn)
 	Schema(graphql.Schema)
+	Adaptor() router.GQLSubscriptionAdaptor
 	Authorize(AuthorizeFunc)
 	BeforeOpen(HookFunc)
 	AfterClose(HookFunc)
@@ -122,5 +123,6 @@ func New(opts ...Option) Service {
 		conns:   make(map[string]Context),
 		tree:    &tree{state: make(map[string][]Subscription)},
 	}
+	s.adaptor = &adaptor{s}
 	return s
 }

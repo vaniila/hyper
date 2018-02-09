@@ -206,6 +206,7 @@ type Context interface {
 	Client() router.Client
 	Cache() router.CacheAdaptor
 	Message() router.MessageAdaptor
+	GQLSubscription() router.GQLSubscriptionAdaptor
 	DataLoader(interface{}) router.DataLoaderAdaptor
 	KV() router.KV
 	Cookie() router.Cookie

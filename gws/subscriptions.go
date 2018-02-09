@@ -8,6 +8,9 @@ type subscriptions struct {
 }
 
 func (v *subscriptions) Has(id string) bool {
+	if len(id) == 0 {
+		return false
+	}
 	v.RLock()
 	defer v.RUnlock()
 	if _, ok := v.subs[id]; ok {
@@ -39,6 +42,9 @@ func (v *subscriptions) Del(sub Subscription) bool {
 }
 
 func (v *subscriptions) Get(id string) Subscription {
+	if len(id) == 0 {
+		return nil
+	}
 	v.RLock()
 	defer v.RUnlock()
 	if o, ok := v.subs[id]; ok {

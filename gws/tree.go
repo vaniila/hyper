@@ -8,9 +8,9 @@ type tree struct {
 }
 
 func (v *tree) Has(sub Subscription) bool {
-	v.RLock()
-	defer v.RUnlock()
 	if sub != nil {
+		v.RLock()
+		defer v.RUnlock()
 		for _, field := range sub.Fields() {
 			if group, ok := v.state[field]; ok {
 				for _, s := range group {
@@ -25,9 +25,9 @@ func (v *tree) Has(sub Subscription) bool {
 }
 
 func (v *tree) Add(sub Subscription, enforce ...bool) bool {
-	v.Lock()
-	defer v.Unlock()
 	if sub != nil && ((len(enforce) > 0 && enforce[0]) || !v.Has(sub)) {
+		v.Lock()
+		defer v.Unlock()
 		for _, field := range sub.Fields() {
 			if _, ok := v.state[field]; ok {
 				v.state[field] = append(v.state[field], sub)
@@ -41,9 +41,9 @@ func (v *tree) Add(sub Subscription, enforce ...bool) bool {
 }
 
 func (v *tree) Del(sub Subscription) bool {
-	v.Lock()
-	defer v.Unlock()
 	if sub != nil {
+		v.Lock()
+		defer v.Unlock()
 		var count int
 		for _, field := range sub.Fields() {
 			if group, ok := v.state[field]; ok {
@@ -62,6 +62,9 @@ func (v *tree) Del(sub Subscription) bool {
 }
 
 func (v *tree) Get(fields ...string) []Subscription {
+	if len(fields) == 0 {
+		return nil
+	}
 	v.RLock()
 	defer v.RUnlock()
 	var count, idx int

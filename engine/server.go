@@ -10,6 +10,7 @@ import (
 	"github.com/vaniila/hyper/cache"
 	"github.com/vaniila/hyper/dataloader"
 	"github.com/vaniila/hyper/fault"
+	"github.com/vaniila/hyper/gws"
 	"github.com/vaniila/hyper/message"
 	"github.com/vaniila/hyper/router"
 	"github.com/vaniila/hyper/websocket"
@@ -27,6 +28,7 @@ type server struct {
 	cors       *cors
 	cache      cache.Service
 	message    message.Service
+	gws        gws.Service
 	dataloader dataloader.Service
 	router     router.Service
 	websocket  websocket.Service
@@ -152,20 +154,21 @@ func (v *server) handlerRoute(conf router.RouteConfig) func(http.ResponseWriter,
 			uaparser: v.uaparser,
 		}
 		c := &Context{
-			machineID:  v.id,
-			processID:  newID(),
-			ctx:        r.Context(),
-			identity:   new(identity),
-			req:        r,
-			res:        w,
-			client:     client,
-			values:     make([]router.Value, 0),
-			params:     conf.Params(),
-			warnings:   make([]fault.Cause, 0),
-			cache:      v.cache,
-			message:    v.message,
-			dataloader: v.dataloader.Instance(),
-			uaparser:   v.uaparser,
+			machineID:       v.id,
+			processID:       newID(),
+			ctx:             r.Context(),
+			identity:        new(identity),
+			req:             r,
+			res:             w,
+			client:          client,
+			values:          make([]router.Value, 0),
+			params:          conf.Params(),
+			warnings:        make([]fault.Cause, 0),
+			cache:           v.cache,
+			message:         v.message,
+			gqlsubscription: v.gws.Adaptor(),
+			dataloader:      v.dataloader.Instance(),
+			uaparser:        v.uaparser,
 		}
 		c.ctx = context.WithValue(c.ctx, router.RequestContext, c)
 		h := &Header{

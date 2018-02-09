@@ -25,6 +25,7 @@ type server struct {
 	schema   graphql.Schema
 	conns    map[string]Context
 	tree     Store
+	adaptor  router.GQLSubscriptionAdaptor
 	hookauth AuthorizeFunc
 	hookbo   HookFunc
 	hookac   HookFunc
@@ -54,8 +55,12 @@ func (v *server) Schema(schema graphql.Schema) {
 	v.schema = schema
 }
 
+func (v *server) Adaptor() router.GQLSubscriptionAdaptor {
+	return v.adaptor
+}
+
 func (v *server) Publish(d *Distribution) error {
-	b, err := json.Marshal(d)
+	b, err := proto.Marshal(d)
 	if err != nil {
 		return err
 	}
@@ -97,21 +102,33 @@ func (v *server) Subscribe(d *Distribution) error {
 subscriptions:
 	for _, sub := range v.tree.Get(d.Field) {
 		if eqids != nil {
+			if !sub.Connection().Identity().HasID() {
+				continue
+			}
 			if _, ok := eqids[int64(sub.Connection().Identity().GetID())]; !ok {
 				continue
 			}
 		}
 		if neids != nil {
+			if !sub.Connection().Identity().HasID() {
+				continue
+			}
 			if _, ok := neids[int64(sub.Connection().Identity().GetID())]; ok {
 				continue
 			}
 		}
 		if eqkeys != nil {
+			if !sub.Connection().Identity().HasKey() {
+				continue
+			}
 			if _, ok := eqkeys[sub.Connection().Identity().GetKey()]; !ok {
 				continue
 			}
 		}
 		if nekeys != nil {
+			if !sub.Connection().Identity().HasKey() {
+				continue
+			}
 			if _, ok := nekeys[sub.Connection().Identity().GetKey()]; ok {
 				continue
 			}
@@ -171,6 +188,7 @@ subscriptions:
 			VariableValues: sub.Variables(),
 			OperationName:  sub.OperationName(),
 			Context:        sub.Connection().Context(),
+			RootObject:     map[string]interface{}{"$subscription_payload$": d.Payload},
 		}
 		result := graphql.Do(params)
 		if err := sub.Connection().Write(sub.ID(), &DataMessagePayload{
@@ -235,10 +253,10 @@ func (v *server) Read(mt int, message []byte, c Context) {
 
 	if mt == websocket.TextMessage && message != nil && len(message) > 0 {
 
-		var raw json.RawMessage
-		msg := &OperationMessage{Payload: &raw}
+		raw := json.RawMessage{}
+		msg := OperationMessage{Payload: &raw}
 
-		if err := c.Connection().ReadJSON(&msg); err != nil {
+		if err := json.Unmarshal(message, &msg); err != nil {
 			c.Close()
 			return
 		}
@@ -308,7 +326,11 @@ func (v *server) Read(mt int, message []byte, c Context) {
 			sub.fields = fields
 			sub.args = args
 
-			if !c.Subscriptions().Add(sub, true) || !v.tree.Add(sub) {
+			if !c.Subscriptions().Add(sub, true) {
+				c.Error(msg.ID, []error{errors.New("Unable to register subscription")})
+				return
+			}
+			if !v.tree.Add(sub) {
 				c.Error(msg.ID, []error{errors.New("Unable to register subscription")})
 				return
 			}
