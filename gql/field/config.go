@@ -89,7 +89,7 @@ func (v *fieldconfig) Resolve(params map[string]interface{}, values []interfaces
 		data := &value{
 			key: arg.Config().Name(),
 		}
-		switch conf.Type {
+		switch graphql.GetNullable(conf.Type) {
 		case graphql.Int:
 			data.fmt = router.Int
 		case graphql.Float:
@@ -114,7 +114,12 @@ func (v *fieldconfig) Resolve(params map[string]interface{}, values []interfaces
 			case string:
 				data.val = []byte(o)
 				data.has = true
-				data.parsed = o
+				if data.fmt == router.DateTimeRFC3339 {
+					t, _ := time.Parse(time.RFC3339, o)
+					data.parsed = t
+				} else {
+					data.parsed = o
+				}
 			case int:
 				data.val = []byte(strconv.Itoa(o))
 				data.has = true
