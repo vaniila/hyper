@@ -266,6 +266,8 @@ func (v *server) buildRoutes(mux *chi.Mux, routes []router.Route) {
 				Name("Websocket").
 				Doc(`Websocket endpoint`).
 				Summary(`Websocket endpoint`).
+				ClearParams().
+				ClearMiddleware().
 				Handle(func(c router.Context) {
 					v.websocket.Handle(c)
 				}).
