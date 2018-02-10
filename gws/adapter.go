@@ -16,6 +16,7 @@ func (v *adaptor) Emit(e router.GQLEvent) error {
 		Field:   e.Field(),
 		Payload: e.Payload(),
 		Filters: make([]*Filter, len(e.Filters())),
+		Strict:  e.Strict(),
 	}
 	for k, v := range e.Filters() {
 		o := &Filter{

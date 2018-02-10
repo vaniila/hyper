@@ -12,6 +12,7 @@ type Options struct {
 	NeIDs   []int64
 	EqKeys  []string
 	NeKeys  []string
+	Strict  bool
 }
 
 func newOptions(opts ...Option) Options {
@@ -68,5 +69,12 @@ func EqKeys(i []string) Option {
 func NeKeys(i []string) Option {
 	return func(o *Options) {
 		o.NeKeys = i
+	}
+}
+
+// Strict to set status of strict mode
+func Strict(b bool) Option {
+	return func(o *Options) {
+		o.Strict = b
 	}
 }

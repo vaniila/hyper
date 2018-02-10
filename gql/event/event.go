@@ -11,6 +11,7 @@ type event struct {
 	neIDs   []int64
 	eqKeys  []string
 	neKeys  []string
+	strict  bool
 }
 
 // Field returns field name
@@ -48,6 +49,12 @@ func (v *event) NeKeys() []string {
 	return v.neKeys
 }
 
+// Strict returns strict mode status
+// If strict mode is on, all variables and filters have to be equal match
+func (v *event) Strict() bool {
+	return v.strict
+}
+
 // New creates engine server
 func New(opts ...Option) router.GQLEvent {
 	o := newOptions(opts...)
@@ -59,6 +66,7 @@ func New(opts ...Option) router.GQLEvent {
 		neIDs:   o.NeIDs,
 		eqKeys:  o.EqKeys,
 		neKeys:  o.NeKeys,
+		strict:  o.Strict,
 	}
 	return e
 }

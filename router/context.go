@@ -77,17 +77,6 @@ type Identity interface {
 	SetKey(string)
 }
 
-// GQLEvent interface
-type GQLEvent interface {
-	Field() string
-	Payload() []byte
-	Filters() map[string]interface{}
-	EqIDs() []int64
-	NeIDs() []int64
-	EqKeys() []string
-	NeKeys() []string
-}
-
 // CacheAdaptor interface
 type CacheAdaptor interface {
 	Set(key []byte, data []byte, ttl time.Duration) error
@@ -98,6 +87,18 @@ type CacheAdaptor interface {
 type MessageAdaptor interface {
 	Emit([]byte, []byte) error
 	Listen([]byte, message.Handler) message.Close
+}
+
+// GQLEvent interface
+type GQLEvent interface {
+	Field() string
+	Payload() []byte
+	Filters() map[string]interface{}
+	EqIDs() []int64
+	NeIDs() []int64
+	EqKeys() []string
+	NeKeys() []string
+	Strict() bool
 }
 
 // GQLSubscriptionAdaptor interface

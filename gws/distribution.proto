@@ -7,6 +7,7 @@ message Distribution {
   bytes payload = 20;
   repeated Filter filters = 30;
   Condition condition = 50;
+  bool strict = 60;
 }
 
 message Filter {
