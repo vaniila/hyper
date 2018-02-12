@@ -11,7 +11,7 @@ import (
 type connection struct {
 	machineID, processID string
 	ctx                  context.Context
-	identity             *identity
+	identity             Identity
 	subscriptions        Subscriptions
 	req                  *http.Request
 	res                  http.ResponseWriter

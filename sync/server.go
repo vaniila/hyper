@@ -142,7 +142,7 @@ func (v *server) Handle(r router.Context, n *websocket.Conn) {
 	c := &connection{
 		machineID:     r.MachineID(),
 		processID:     r.ProcessID(),
-		identity:      new(identity),
+		identity:      r.Identity(),
 		subscriptions: &subscriptions{make([]Channel, 0)},
 		ctx:           r.Context(),
 		req:           r.Req(),
