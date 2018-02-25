@@ -9,6 +9,8 @@ import (
 	"runtime"
 
 	"github.com/graphql-go/graphql"
+	"github.com/opentracing/opentracing-go"
+
 	"github.com/vaniila/hyper/router"
 )
 
@@ -79,6 +81,12 @@ func GraphQL(schema graphql.Schema) router.HandlerFunc {
 			}
 		}
 
+		span := c.StartSpan(
+			"HTTP GraphQL Execution",
+			opentracing.Tag{"graphql-query", payload.ParsedQuery},
+			opentracing.Tag{"graphql-variables", payload.ParsedVariables},
+		)
+		defer span.Finish()
 		result := graphql.Do(graphql.Params{
 			Schema:         schema,
 			RequestString:  payload.ParsedQuery,

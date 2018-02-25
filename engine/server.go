@@ -230,9 +230,15 @@ func (v *server) handlerRoute(conf router.RouteConfig) func(http.ResponseWriter,
 
 		switch r.Method {
 		case "PUT", "POST", "PATCH", "CONNECT":
+			span := c.StartSpan("HTTP ParseMultipartForm")
 			r.ParseMultipartForm(conf.MaxMemory())
+			span.Finish()
 		}
-		v.handleParameters(c, conf, conf.Params())
+		{
+			span := c.StartSpan("HTTP ParseParameters")
+			v.handleParameters(c, conf, conf.Params())
+			span.Finish()
+		}
 		if len(c.warnings) > 0 {
 			ext.Error.Set(span, true)
 			err := fault.
