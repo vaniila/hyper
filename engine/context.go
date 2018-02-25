@@ -7,12 +7,13 @@ import (
 	"time"
 
 	"github.com/golang/protobuf/proto"
+	"github.com/opentracing/opentracing-go"
+	"github.com/opentracing/opentracing-go/ext"
 	"github.com/ua-parser/uap-go/uaparser"
 	"github.com/vaniila/hyper/dataloader"
 	"github.com/vaniila/hyper/fault"
 	"github.com/vaniila/hyper/kv"
 	"github.com/vaniila/hyper/router"
-	"github.com/vaniila/hyper/tracer"
 )
 
 const (
@@ -24,6 +25,8 @@ const (
 type Context struct {
 	machineID, processID string
 	ctx                  context.Context
+	tracer               opentracing.Tracer
+	span                 opentracing.Span
 	identity             *identity
 	req                  *http.Request
 	res                  http.ResponseWriter
@@ -37,6 +40,7 @@ type Context struct {
 	header               router.Header
 	aborted              bool
 	wrote                bool
+	statuscode           int
 	params               []router.Param
 	values               []router.Value
 	warnings             []fault.Cause
@@ -225,8 +229,16 @@ func (v *Context) File(s string) []byte {
 	return nil
 }
 
-func (v *Context) Tracer() tracer.Tracer {
-	return nil
+func (v *Context) StartSpan(operationName string, opts ...opentracing.StartSpanOption) opentracing.Span {
+	child := v.tracer.StartSpan(
+		operationName,
+		append(opts, opentracing.ChildOf(v.span.Context()))...,
+	)
+	return child
+}
+
+func (v *Context) Tracer() opentracing.Tracer {
+	return v.tracer
 }
 
 func (v *Context) Recover() error {
@@ -277,6 +289,7 @@ func (v *Context) Write(b []byte) router.Context {
 
 func (v *Context) Error(e error) router.Context {
 	if e != nil {
+		ext.Error.Set(v.span, true)
 		if f, ok := fault.Is(e); ok {
 			v.Status(f.Status())
 			v.Write(f.Json())
@@ -308,6 +321,7 @@ func (v *Context) Json(o interface{}) router.Context {
 func (v *Context) Status(code int) router.Context {
 	if !v.IsAborted() && !v.wrote {
 		v.res.WriteHeader(code)
+		v.statuscode = code
 		v.wrote = true
 	}
 	return v

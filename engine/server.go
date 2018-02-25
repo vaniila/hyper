@@ -2,6 +2,7 @@ package engine
 
 import (
 	"context"
+	"fmt"
 	"net"
 
 	"github.com/pressly/chi"
@@ -14,6 +15,9 @@ import (
 	"github.com/vaniila/hyper/message"
 	"github.com/vaniila/hyper/router"
 	"github.com/vaniila/hyper/websocket"
+
+	"github.com/opentracing/opentracing-go"
+	"github.com/opentracing/opentracing-go/ext"
 
 	"golang.org/x/net/http2"
 
@@ -149,14 +153,43 @@ func (v *server) handleParameters(c *Context, route router.RouteConfig, params [
 
 func (v *server) handlerRoute(conf router.RouteConfig) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
+
+		pid := newID()
+
+		tracer := opentracing.GlobalTracer()
+
+		ctx, _ := tracer.Extract(
+			opentracing.HTTPHeaders,
+			opentracing.HTTPHeadersCarrier(r.Header),
+		)
+
+		span := tracer.StartSpan(
+			fmt.Sprintf("HTTP %s %s", r.Method, r.URL.String()),
+			ext.RPCServerOption(ctx),
+			opentracing.Tag{"machine-id", v.id},
+			opentracing.Tag{"process-id", pid},
+		)
+		defer span.Finish()
+
+		ext.HTTPMethod.Set(span, r.Method)
+		ext.HTTPUrl.Set(span, r.URL.String())
+		ext.Component.Set(span, v.String())
+
+		r = r.WithContext(
+			opentracing.ContextWithSpan(r.Context(), span),
+		)
+
 		client := &Client{
 			req:      r,
 			uaparser: v.uaparser,
 		}
+
 		c := &Context{
 			machineID:       v.id,
-			processID:       newID(),
+			processID:       pid,
 			ctx:             r.Context(),
+			tracer:          tracer,
+			span:            span,
 			identity:        new(identity),
 			req:             r,
 			res:             w,
@@ -169,8 +202,10 @@ func (v *server) handlerRoute(conf router.RouteConfig) func(http.ResponseWriter,
 			gqlsubscription: v.gws.Adaptor(),
 			dataloader:      v.dataloader.Instance(),
 			uaparser:        v.uaparser,
+			statuscode:      http.StatusOK,
 		}
 		c.ctx = context.WithValue(c.ctx, router.RequestContext, c)
+
 		h := &Header{
 			context: c,
 		}
@@ -179,8 +214,11 @@ func (v *server) handlerRoute(conf router.RouteConfig) func(http.ResponseWriter,
 		}
 		c.header = h
 		c.cookie = s
+
 		defer func() {
+			ext.HTTPStatusCode.Set(span, uint16(c.statuscode))
 			if err, ok := recover().(error); ok && err != nil && !c.IsAborted() {
+				ext.Error.Set(span, true)
 				c.recover = err
 				if catch := conf.Catch(); catch != nil {
 					catch(c)
@@ -189,12 +227,14 @@ func (v *server) handlerRoute(conf router.RouteConfig) func(http.ResponseWriter,
 				}
 			}
 		}()
+
 		switch r.Method {
 		case "PUT", "POST", "PATCH", "CONNECT":
 			r.ParseMultipartForm(conf.MaxMemory())
 		}
 		v.handleParameters(c, conf, conf.Params())
 		if len(c.warnings) > 0 {
+			ext.Error.Set(span, true)
 			err := fault.
 				New("Unprocessable Entity").
 				SetStatus(http.StatusUnprocessableEntity).

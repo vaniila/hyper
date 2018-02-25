@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"time"
 
+	opentracing "github.com/opentracing/opentracing-go"
 	"github.com/vaniila/hyper/message"
 	"github.com/vaniila/hyper/router/cookie"
-	"github.com/vaniila/hyper/tracer"
 )
 
 // key type
@@ -56,7 +56,8 @@ type Context interface {
 	Query(s string) (Value, error)
 	Body(s string) (Value, error)
 	File(s string) []byte
-	Tracer() tracer.Tracer
+	StartSpan(operationName string, opts ...opentracing.StartSpanOption) opentracing.Span
+	Tracer() opentracing.Tracer
 	Recover() error
 	Abort()
 	IsAborted() bool

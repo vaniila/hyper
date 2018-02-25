@@ -7,6 +7,7 @@ import (
 
 	"github.com/graphql-go/graphql"
 	"github.com/graphql-go/graphql/language/ast"
+	opentracing "github.com/opentracing/opentracing-go"
 	"github.com/vaniila/hyper/router"
 )
 
@@ -218,6 +219,8 @@ type Context interface {
 	Query(s string) (router.Value, error)
 	Body(s string) (router.Value, error)
 	File(s string) []byte
+	StartSpan(operationName string, opts ...opentracing.StartSpanOption) opentracing.Span
+	Tracer() opentracing.Tracer
 	Abort()
 	IsAborted() bool
 	HasErrors() bool
