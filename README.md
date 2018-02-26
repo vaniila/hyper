@@ -8,6 +8,7 @@ HTTP web framework with DataLoader, GraphQL and Swagger integration
 * GraphQL + Subscription
 * Dataloader
 * Swagger
+* Opentracing
 
 ## Contributing
 
