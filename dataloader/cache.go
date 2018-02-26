@@ -34,10 +34,24 @@ func newCache() *InMemoryCache {
 	}
 }
 
+// toHashable returns the original or hash key
+func toHashable(key interface{}) interface{} {
+	switch key.(type) {
+	case string, int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64, complex64, complex128, float32, float64, bool:
+		return key
+	default:
+		i, err := toHash(key, 0)
+		if err != nil {
+			return key
+		}
+		return i
+	}
+}
+
 // Set sets the `value` at `key` in the cache
 func (c *InMemoryCache) Set(key interface{}, value Thunk) {
 	c.mu.Lock()
-	c.items[key] = value
+	c.items[toHashable(key)] = value
 	c.mu.Unlock()
 }
 
@@ -47,7 +61,7 @@ func (c *InMemoryCache) Get(key interface{}) (Thunk, bool) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
-	item, found := c.items[key]
+	item, found := c.items[toHashable(key)]
 	if !found {
 		return nil, false
 	}
@@ -57,10 +71,11 @@ func (c *InMemoryCache) Get(key interface{}) (Thunk, bool) {
 
 // Delete deletes item at `key` from cache
 func (c *InMemoryCache) Delete(key interface{}) bool {
-	if _, found := c.Get(key); found {
+	vkey := toHashable(key)
+	if _, found := c.Get(vkey); found {
 		c.mu.Lock()
 		defer c.mu.Unlock()
-		delete(c.items, key)
+		delete(c.items, vkey)
 		return true
 	}
 	return false
