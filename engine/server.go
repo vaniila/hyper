@@ -245,6 +245,9 @@ func (v *server) handlerRoute(conf router.RouteConfig) func(http.ResponseWriter,
 		case "PUT", "POST", "PATCH", "CONNECT":
 			span := c.StartSpan("HTTP ParseMultipartForm")
 			r.ParseMultipartForm(conf.MaxMemory())
+			if r.MultipartForm != nil {
+				defer r.MultipartForm.RemoveAll()
+			}
 			span.Finish()
 		}
 		{
