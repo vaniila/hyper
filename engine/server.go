@@ -1,8 +1,10 @@
 package engine
 
 import (
+	"bytes"
 	"context"
 	"fmt"
+	"io"
 	"net"
 
 	"github.com/pressly/chi"
@@ -51,7 +53,17 @@ func (v *server) handleParameters(c *Context, route router.RouteConfig, params [
 		}
 		switch conf.Type() {
 		case router.ParamBody:
-			if vs := r.Form[conf.Name()]; len(vs) > 0 {
+			if conf.Format() == router.File {
+				file, _, err := r.FormFile(conf.Name())
+				if err == nil {
+					b := bytes.Buffer{}
+					defer file.Close()
+					defer b.Reset()
+					l, e := io.Copy(&b, file)
+					data.val = b.Bytes()
+					data.has = l > 0 && e == nil
+				}
+			} else if vs := r.Form[conf.Name()]; len(vs) > 0 {
 				data.val = []byte(vs[0])
 				data.has = true
 			} else if vs := r.PostForm[conf.Name()]; len(vs) > 0 {
@@ -219,6 +231,7 @@ func (v *server) handlerRoute(conf router.RouteConfig) func(http.ResponseWriter,
 			ext.HTTPStatusCode.Set(span, uint16(c.statuscode))
 			if err, ok := recover().(error); ok && err != nil && !c.IsAborted() {
 				ext.Error.Set(span, true)
+				span.SetTag("cause", err.Error())
 				c.recover = err
 				if catch := conf.Catch(); catch != nil {
 					catch(c)
@@ -240,11 +253,12 @@ func (v *server) handlerRoute(conf router.RouteConfig) func(http.ResponseWriter,
 			span.Finish()
 		}
 		if len(c.warnings) > 0 {
-			ext.Error.Set(span, true)
 			err := fault.
 				New("Unprocessable Entity").
 				SetStatus(http.StatusUnprocessableEntity).
 				AddCause(c.warnings...)
+			ext.Error.Set(span, true)
+			span.SetTag("cause", err.Error())
 			c.Error(err)
 			return
 		}

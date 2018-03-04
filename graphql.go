@@ -32,6 +32,9 @@ var GQLBodies = []router.Param{
 	Body("variables").
 		Format(Text).
 		Require(false),
+	Body("file").
+		Format(File).
+		Require(false),
 }
 
 // Payload struct

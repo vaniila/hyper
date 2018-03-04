@@ -162,7 +162,7 @@ func main() {
 		Router().
 		Post("/graphql").
 		Params(
-			append(hyper.GQLQueries, hyper.GQLBodies...)...,
+			hyper.GQLBodies...,
 		).
 		Handle(hyper.GraphQL(schema))
 

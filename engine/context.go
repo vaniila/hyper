@@ -226,6 +226,9 @@ func (v *Context) Body(s string) (router.Value, error) {
 }
 
 func (v *Context) File(s string) []byte {
+	if v := v.MatchParameter(s, router.ParamBody); v != nil {
+		return v.Val()
+	}
 	return nil
 }
 
