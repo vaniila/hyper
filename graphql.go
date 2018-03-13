@@ -9,7 +9,6 @@ import (
 	"runtime"
 
 	"github.com/graphql-go/graphql"
-	"github.com/opentracing/opentracing-go"
 
 	"github.com/vaniila/hyper/router"
 )
@@ -84,11 +83,11 @@ func GraphQL(schema graphql.Schema) router.HandlerFunc {
 			}
 		}
 
-		span := c.StartSpan(
-			"HTTP GraphQL Execution",
-			opentracing.Tag{"graphql-query", payload.ParsedQuery},
-			opentracing.Tag{"graphql-variables", payload.ParsedVariables},
-		)
+		span := c.StartSpan("HTTP GraphQL Execution")
+		span.LogKV("graphql-query", payload.ParsedQuery)
+		for k, v := range payload.ParsedVariables {
+			span.LogKV(fmt.Sprintf("graphql-variable:%s", k), v)
+		}
 		defer span.Finish()
 		result := graphql.Do(graphql.Params{
 			Schema:         schema,
@@ -99,6 +98,7 @@ func GraphQL(schema graphql.Schema) router.HandlerFunc {
 		if result.HasErrors() {
 			c.Status(http.StatusForbidden)
 		}
+		span.LogKV("graphql-result", result)
 		c.Json(result)
 	}
 }
