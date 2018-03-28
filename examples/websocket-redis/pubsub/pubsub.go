@@ -54,13 +54,10 @@ func (v *server) Start() error {
 }
 
 func (v *server) Stop() error {
-	if v.pubsub != nil {
-		return v.pubsub.Close()
+	if err := v.pubsub.Close(); err != nil {
+		return err
 	}
-	if v.client != nil {
-		return v.client.Close()
-	}
-	return nil
+	return v.client.Close()
 }
 
 func (v *server) Emit(channel []byte, message []byte) error {
