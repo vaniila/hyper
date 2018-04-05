@@ -5,7 +5,7 @@ type field struct {
 	value interface{}
 }
 
-// Value returns the key of field
+// Key returns the key of field
 func (f *field) Key() string {
 	return f.key
 }
