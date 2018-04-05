@@ -1,11 +1,11 @@
 package hyper
 
 import (
-	"log"
 	"os"
 	"os/signal"
 	"syscall"
 
+	"github.com/julienbreux/hyper/logger" // FIXME: Before proposal
 	"github.com/vaniila/hyper/cache"
 	"github.com/vaniila/hyper/dataloader"
 	"github.com/vaniila/hyper/engine"
@@ -20,6 +20,7 @@ import (
 type Hyper struct {
 	id         string
 	addr       string
+	logger     logger.Service
 	cache      cache.Service
 	message    message.Service
 	dataloader dataloader.Service
@@ -31,6 +32,9 @@ type Hyper struct {
 }
 
 func (v *Hyper) start() error {
+	if err := v.logger.Start(); err != nil {
+		return err
+	}
 	if err := v.cache.Start(); err != nil {
 		return err
 	}
@@ -84,6 +88,9 @@ func (v *Hyper) stop() error {
 	if err := v.dataloader.Stop(); err != nil {
 		return err
 	}
+	if err := v.logger.Stop(); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -94,14 +101,19 @@ func (v *Hyper) Run() error {
 		return err
 	}
 
-	log.Printf("Server running on %s", v.addr)
+	v.logger.Info("Server running on %s", logger.NewField("address", v.addr))
 
 	ch := make(chan os.Signal, 1)
 	signal.Notify(ch, syscall.SIGTERM, syscall.SIGINT, syscall.SIGKILL)
 
-	log.Printf("Received signal %s", <-ch)
+	v.logger.Info("Received signal %s", logger.NewField("signal", <-ch))
 
 	return v.stop()
+}
+
+// Logger returns logger service
+func (v *Hyper) Logger() logger.Service {
+	return v.logger
 }
 
 // Sync returns sync service
