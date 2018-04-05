@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"fmt"
 
+	"github.com/julienbreux/hyper/logger" // FIXME: Before proposal
 	"github.com/vaniila/hyper/cache"
 	"github.com/vaniila/hyper/dataloader"
 	"github.com/vaniila/hyper/engine"
@@ -34,6 +35,9 @@ type Options struct {
 	// graphql subscription engine
 	GQLSubscription gws.Service
 
+	// Logger
+	Logger logger.Service
+
 	// Cache engine
 	Cache cache.Service
 
@@ -53,7 +57,7 @@ type Options struct {
 	// AllowedOrigins is a list of origins a cross-domain request can be executed from.
 	// If the special "*" value is present in the list, all origins will be allowed.
 	// An origin may contain a wildcard (*) to replace 0 or more characters
-	// (i.e.: http://*.domain.com). Usage of wildcards implies a small performance penality.
+	// (i.e.: http://*.domain.com). Usage of wildcards implies a small performance penalty.
 	// Only one wildcard can be used per origin.
 	// Default value is ["*"]
 	AllowedOrigins []string
@@ -106,6 +110,11 @@ func newOptions(opts ...Option) Options {
 	}
 	for _, o := range opts {
 		o(&opt)
+	}
+	if opt.Logger == nil {
+		opt.Logger = logger.New(
+			logger.ID(opt.ID),
+		)
 	}
 	if opt.Cache == nil {
 		opt.Cache = cache.New(
@@ -179,6 +188,13 @@ func Sync(s sync.Service) Option {
 	}
 }
 
+// Logger to set custom logger
+func Logger(l logger.Service) Option {
+	return func(o *Options) {
+		o.Logger = l
+	}
+}
+
 // Cache to set custom cache engine
 func Cache(c cache.Service) Option {
 	return func(o *Options) {
@@ -221,42 +237,49 @@ func AfterStop(f func() error) Option {
 	}
 }
 
+// AllowedOrigins to add allowed origins for CORS
 func AllowedOrigins(a []string) Option {
 	return func(o *Options) {
 		o.AllowedOrigins = append(o.AllowedOrigins, a...)
 	}
 }
 
+// AllowOriginFunc to add func to set CORS
 func AllowOriginFunc(f func(string) bool) Option {
 	return func(o *Options) {
 		o.AllowOriginFunc = f
 	}
 }
 
+// AllowedMethods to add allowed methods for CORS
 func AllowedMethods(a []string) Option {
 	return func(o *Options) {
 		o.AllowedMethods = append(o.AllowedMethods, a...)
 	}
 }
 
+// AllowedHeaders to add allowed headers for CORS
 func AllowedHeaders(a []string) Option {
 	return func(o *Options) {
 		o.AllowedHeaders = append(o.AllowedMethods, a...)
 	}
 }
 
+// ExposedHeaders to add exposed headers
 func ExposedHeaders(a []string) Option {
 	return func(o *Options) {
 		o.ExposedHeaders = append(o.AllowedMethods, a...)
 	}
 }
 
+// AllowCredentials to set allowed credentials
 func AllowCredentials(b bool) Option {
 	return func(o *Options) {
 		o.AllowCredentials = b
 	}
 }
 
+// MaxAge to set max age header
 func MaxAge(i int) Option {
 	return func(o *Options) {
 		o.MaxAge = i
