@@ -31,6 +31,8 @@ func (v *field) Type(t interface{}) interfaces.Field {
 	case interfaces.Object:
 		v.typ = nil
 		v.obj = o
+	case interfaces.Union:
+		v.typ = o.Config().Union()
 	}
 	return v
 }
