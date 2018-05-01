@@ -198,12 +198,18 @@ subscriptions:
 				}
 			}
 		}
+		parent := sub.
+			Connection().
+			Context().
+			Value(router.RequestContext).(router.Context)
+		child := parent.
+			Child()
 		params := graphql.Params{
 			Schema:         v.schema,
 			RequestString:  sub.Query(),
 			VariableValues: sub.Variables(),
 			OperationName:  sub.OperationName(),
-			Context:        sub.Connection().Context(),
+			Context:        child.Context(),
 			RootObject:     map[string]interface{}{"$subscription_payload$": d.Payload},
 		}
 		result := graphql.Do(params)

@@ -66,6 +66,7 @@ type Context interface {
 	Error(error) Context
 	Json(o interface{}) Context
 	Status(code int) Context
+	Child() Context
 }
 
 // Identity interface

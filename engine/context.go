@@ -34,7 +34,8 @@ type Context struct {
 	cache                router.CacheAdaptor
 	message              router.MessageAdaptor
 	gqlsubscription      router.GQLSubscriptionAdaptor
-	dataloader           dataloader.DataLoaders
+	dataloader           dataloader.Service
+	dataloaders          dataloader.DataLoaders
 	kv                   router.KV
 	cookie               router.Cookie
 	header               router.Header
@@ -111,7 +112,7 @@ func (v *Context) GQLSubscription() router.GQLSubscriptionAdaptor {
 }
 
 func (v *Context) DataLoader(o interface{}) router.DataLoaderAdaptor {
-	return v.dataloader.Get(o)
+	return v.dataloaders.Get(o)
 }
 
 func (v *Context) KV() router.KV {
@@ -328,4 +329,14 @@ func (v *Context) Status(code int) router.Context {
 		v.wrote = true
 	}
 	return v
+}
+
+func (v *Context) Child() router.Context {
+	child := new(Context)
+	*child = *v
+
+	child.dataloaders = v.dataloader.Instance()
+	child.ctx = context.WithValue(child.ctx, router.RequestContext, child)
+
+	return child
 }
