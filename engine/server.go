@@ -183,6 +183,9 @@ func (v *server) handlerRoute(conf router.RouteConfig) func(http.ResponseWriter,
 		)
 		defer span.Finish()
 
+		sid := fmt.Sprintf("%s", span.Context())
+		w.Header().Set("Trace-Id", sid)
+
 		ext.HTTPMethod.Set(span, r.Method)
 		ext.HTTPUrl.Set(span, r.URL.String())
 		ext.Component.Set(span, v.String())
