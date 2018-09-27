@@ -20,6 +20,7 @@ type connection struct {
 	header               router.Header
 	cache                CacheAdaptor
 	message              MessageAdaptor
+	logger               LoggerAdaptor
 	server               Service
 	conn                 *websocket.Conn
 }
@@ -74,6 +75,10 @@ func (v *connection) Cache() CacheAdaptor {
 
 func (v *connection) Message() MessageAdaptor {
 	return v.message
+}
+
+func (v *connection) Logger() LoggerAdaptor {
+	return v.logger
 }
 
 func (v *connection) Write(id string, o interface{}) error {

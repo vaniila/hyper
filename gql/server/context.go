@@ -30,6 +30,7 @@ func (v *ctx) Res() http.ResponseWriter                          { return v.priv
 func (v *ctx) Client() router.Client                             { return v.private.Client() }
 func (v *ctx) Cache() router.CacheAdaptor                        { return v.private.Cache() }
 func (v *ctx) Message() router.MessageAdaptor                    { return v.private.Message() }
+func (v *ctx) Logger() router.Logger                             { return v.private.Logger() }
 func (v *ctx) GQLSubscription() router.GQLSubscriptionAdaptor    { return v.private.GQLSubscription() }
 func (v *ctx) DataLoader(o interface{}) router.DataLoaderAdaptor { return v.private.DataLoader(o) }
 func (v *ctx) KV() router.KV                                     { return v.private.KV() }

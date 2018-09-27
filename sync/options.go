@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/vaniila/hyper/cache"
+	"github.com/vaniila/hyper/logger"
 	"github.com/vaniila/hyper/message"
 )
 
@@ -25,6 +26,9 @@ type Options struct {
 
 	// message broker
 	Message message.Service
+
+	// logger
+	Logger logger.Service
 }
 
 func newID() string {
@@ -73,5 +77,12 @@ func Cache(v cache.Service) Option {
 func Message(m message.Service) Option {
 	return func(o *Options) {
 		o.Message = m
+	}
+}
+
+// Logger to set custom logger
+func Logger(l logger.Service) Option {
+	return func(o *Options) {
+		o.Logger = l
 	}
 }

@@ -5,11 +5,11 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/julienbreux/hyper/logger" // FIXME: Before proposal
 	"github.com/vaniila/hyper/cache"
 	"github.com/vaniila/hyper/dataloader"
 	"github.com/vaniila/hyper/engine"
 	"github.com/vaniila/hyper/gws"
+	"github.com/vaniila/hyper/logger"
 	"github.com/vaniila/hyper/message"
 	"github.com/vaniila/hyper/router"
 	"github.com/vaniila/hyper/sync"

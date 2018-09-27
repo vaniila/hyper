@@ -8,6 +8,7 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/graphql-go/graphql"
 	"github.com/graphql-go/graphql/language/ast"
+	"github.com/vaniila/hyper/logger"
 	"github.com/vaniila/hyper/message"
 	"github.com/vaniila/hyper/router"
 )
@@ -52,6 +53,7 @@ type Context interface {
 	Connection() *websocket.Conn
 	Cache() CacheAdaptor
 	Message() MessageAdaptor
+	Logger() LoggerAdaptor
 	Write(string, interface{}) error
 	Error(string, interface{}) error
 	Close() error
@@ -111,6 +113,16 @@ type MessageAdaptor interface {
 	Listen([]byte, message.Handler) message.Close
 }
 
+// LoggerAdaptor logging interface
+type LoggerAdaptor interface {
+	Debug(string, ...logger.Field)
+	Info(string, ...logger.Field)
+	Warn(string, ...logger.Field)
+	Error(string, ...logger.Field)
+	Fatal(string, ...logger.Field)
+	Panic(string, ...logger.Field)
+}
+
 // New creates engine server
 func New(opts ...Option) Service {
 	o := newOptions(opts...)
@@ -119,6 +131,7 @@ func New(opts ...Option) Service {
 		topic:   o.Topic,
 		cache:   o.Cache,
 		message: o.Message,
+		logger:  o.Logger,
 		schema:  o.Schema,
 		conns:   make(map[string]Context),
 		tree:    &tree{state: make(map[string][]Subscription)},

@@ -7,6 +7,7 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/gorilla/websocket"
 	"github.com/vaniila/hyper/cache"
+	"github.com/vaniila/hyper/logger"
 	"github.com/vaniila/hyper/message"
 	"github.com/vaniila/hyper/router"
 )
@@ -16,6 +17,7 @@ type server struct {
 	topic      []byte
 	cache      cache.Service
 	message    message.Service
+	logger     logger.Service
 	namespaces []Namespace
 	nsmap      map[string]Namespace
 	conns      map[string]Context
@@ -152,6 +154,7 @@ func (v *server) Handle(r router.Context, n *websocket.Conn) {
 		header:        r.Header(),
 		cache:         v.cache,
 		message:       v.message,
+		logger:        v.logger,
 		server:        v,
 		conn:          n,
 	}

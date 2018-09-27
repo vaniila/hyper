@@ -4,11 +4,11 @@ import (
 	"crypto/rand"
 	"fmt"
 
-	"github.com/julienbreux/hyper/logger" // FIXME: Before proposal
 	"github.com/vaniila/hyper/cache"
 	"github.com/vaniila/hyper/dataloader"
 	"github.com/vaniila/hyper/engine"
 	"github.com/vaniila/hyper/gws"
+	"github.com/vaniila/hyper/logger"
 	"github.com/vaniila/hyper/message"
 	"github.com/vaniila/hyper/router"
 	"github.com/vaniila/hyper/sync"
@@ -136,6 +136,7 @@ func newOptions(opts ...Option) Options {
 			sync.ID(opt.ID),
 			sync.Cache(opt.Cache),
 			sync.Message(opt.Message),
+			sync.Logger(opt.Logger),
 		)
 	}
 	if opt.GQLSubscription == nil {
@@ -143,6 +144,7 @@ func newOptions(opts ...Option) Options {
 			gws.ID(opt.ID),
 			gws.Cache(opt.Cache),
 			gws.Message(opt.Message),
+			gws.Logger(opt.Logger),
 		)
 	}
 	if opt.Router == nil {
@@ -286,6 +288,7 @@ func MaxAge(i int) Option {
 	}
 }
 
+// OptionsPassthrough to set options pass through value
 func OptionsPassthrough(b bool) Option {
 	return func(o *Options) {
 		o.OptionsPassthrough = b

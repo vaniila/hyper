@@ -15,6 +15,7 @@ func New(opts ...Option) *Hyper {
 		websocket.Cache(o.Cache),
 		websocket.Message(o.Message),
 		websocket.Router(o.Router),
+		websocket.Logger(o.Logger),
 		websocket.EnableCompression(true),
 	)
 	e := engine.New(
@@ -23,6 +24,7 @@ func New(opts ...Option) *Hyper {
 		engine.Proto(o.Protocol),
 		engine.Cache(o.Cache),
 		engine.Message(o.Message),
+		engine.Logger(o.Logger),
 		engine.GQLSubscription(o.GQLSubscription),
 		engine.DataLoader(o.DataLoader),
 		engine.Router(o.Router),
@@ -41,6 +43,7 @@ func New(opts ...Option) *Hyper {
 		addr:       o.Addr,
 		cache:      o.Cache,
 		message:    o.Message,
+		logger:     o.Logger,
 		dataloader: o.DataLoader,
 		sync:       o.Sync,
 		gws:        o.GQLSubscription,
