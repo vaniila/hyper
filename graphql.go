@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"path/filepath"
-	"runtime"
 
 	"github.com/graphql-go/graphql"
 
@@ -100,18 +98,5 @@ func GraphQL(schema graphql.Schema) router.HandlerFunc {
 		}
 		span.LogKV("graphql-result", result)
 		c.Json(result)
-	}
-}
-
-// GraphiQL renders graphiql interface
-func GraphiQL() router.HandlerFunc {
-	_, caller, _, _ := runtime.Caller(0)
-	dir := filepath.Dir(caller)
-	return func(c router.Context) {
-		d := http.Dir(fmt.Sprintf("%v/gql/graphiql/", dir))
-		h := http.FileServer(d)
-		http.
-			StripPrefix("/graphiql/", h).
-			ServeHTTP(c.Res(), c.Req())
 	}
 }
