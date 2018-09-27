@@ -126,11 +126,6 @@ func main() {
 		).
 		Handle(hyper.GraphQL(schema))
 
-	h.
-		Router().
-		Get("/graphiql/*").
-		Handle(hyper.GraphiQL())
-
 	h.Run()
 
 }
