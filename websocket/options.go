@@ -8,6 +8,7 @@ import (
 
 	"github.com/vaniila/hyper/cache"
 	"github.com/vaniila/hyper/gws"
+	"github.com/vaniila/hyper/logger"
 	"github.com/vaniila/hyper/message"
 	"github.com/vaniila/hyper/router"
 	"github.com/vaniila/hyper/sync"
@@ -55,6 +56,9 @@ type Options struct {
 
 	// Router
 	Router router.Service
+
+	// Logger
+	Logger logger.Service
 }
 
 func newID() string {
@@ -154,5 +158,12 @@ func Message(m message.Service) Option {
 func Router(r router.Service) Option {
 	return func(o *Options) {
 		o.Router = r
+	}
+}
+
+// Logger to set custom logger
+func Logger(l logger.Service) Option {
+	return func(o *Options) {
+		o.Logger = l
 	}
 }

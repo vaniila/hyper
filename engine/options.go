@@ -7,6 +7,7 @@ import (
 	"github.com/vaniila/hyper/cache"
 	"github.com/vaniila/hyper/dataloader"
 	"github.com/vaniila/hyper/gws"
+	"github.com/vaniila/hyper/logger"
 	"github.com/vaniila/hyper/message"
 	"github.com/vaniila/hyper/router"
 	"github.com/vaniila/hyper/websocket"
@@ -32,6 +33,9 @@ type Options struct {
 
 	// Message broker
 	Message message.Service
+
+	// Logger
+	Logger logger.Service
 
 	// GraphQL subscription server
 	GQLSubscription gws.Service
@@ -160,6 +164,13 @@ func Message(m message.Service) Option {
 	}
 }
 
+// Logger to set custom logger
+func Logger(l logger.Service) Option {
+	return func(o *Options) {
+		o.Logger = l
+	}
+}
+
 // GQLSubscription to bind graphql subscription interface to engine server
 func GQLSubscription(s gws.Service) Option {
 	return func(o *Options) {
@@ -188,48 +199,56 @@ func Websocket(w websocket.Service) Option {
 	}
 }
 
+// AllowedOrigins to set allowed origins
 func AllowedOrigins(a []string) Option {
 	return func(o *Options) {
 		o.AllowedOrigins = append(o.AllowedOrigins, a...)
 	}
 }
 
+// AllowOriginFunc to add custom origin handler
 func AllowOriginFunc(f func(string) bool) Option {
 	return func(o *Options) {
 		o.AllowOriginFunc = f
 	}
 }
 
+// AllowedMethods to set allowed methods
 func AllowedMethods(a []string) Option {
 	return func(o *Options) {
 		o.AllowedMethods = append(o.AllowedMethods, a...)
 	}
 }
 
+// AllowedHeaders to set allowed headers
 func AllowedHeaders(a []string) Option {
 	return func(o *Options) {
 		o.AllowedHeaders = append(o.AllowedMethods, a...)
 	}
 }
 
+// ExposedHeaders to set exposed headers
 func ExposedHeaders(a []string) Option {
 	return func(o *Options) {
 		o.ExposedHeaders = append(o.AllowedMethods, a...)
 	}
 }
 
+// AllowCredentials to set allow credentials header
 func AllowCredentials(b bool) Option {
 	return func(o *Options) {
 		o.AllowCredentials = b
 	}
 }
 
+// MaxAge to set max age value
 func MaxAge(i int) Option {
 	return func(o *Options) {
 		o.MaxAge = i
 	}
 }
 
+// OptionsPassthrough to set options pass through value
 func OptionsPassthrough(b bool) Option {
 	return func(o *Options) {
 		o.OptionsPassthrough = b

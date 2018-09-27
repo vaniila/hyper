@@ -20,6 +20,7 @@ func New(opts ...Option) Service {
 		dataloader: o.DataLoader,
 		router:     o.Router,
 		websocket:  o.Websocket,
+		logger:     o.Logger,
 		cors:       newCors(o),
 	}
 	return s

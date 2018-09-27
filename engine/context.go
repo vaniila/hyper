@@ -33,6 +33,7 @@ type Context struct {
 	client               router.Client
 	cache                router.CacheAdaptor
 	message              router.MessageAdaptor
+	logger               router.Logger
 	gqlsubscription      router.GQLSubscriptionAdaptor
 	dataloader           dataloader.Service
 	dataloaders          dataloader.DataLoaders
@@ -105,6 +106,10 @@ func (v *Context) Cache() router.CacheAdaptor {
 
 func (v *Context) Message() router.MessageAdaptor {
 	return v.message
+}
+
+func (v *Context) Logger() router.Logger {
+	return v.logger
 }
 
 func (v *Context) GQLSubscription() router.GQLSubscriptionAdaptor {

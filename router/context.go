@@ -6,6 +6,7 @@ import (
 	"time"
 
 	opentracing "github.com/opentracing/opentracing-go"
+	"github.com/vaniila/hyper/logger"
 	"github.com/vaniila/hyper/message"
 	"github.com/vaniila/hyper/router/cookie"
 )
@@ -44,6 +45,7 @@ type Context interface {
 	Client() Client
 	Cache() CacheAdaptor
 	Message() MessageAdaptor
+	Logger() Logger
 	GQLSubscription() GQLSubscriptionAdaptor
 	DataLoader(interface{}) DataLoaderAdaptor
 	KV() KV
@@ -89,6 +91,16 @@ type CacheAdaptor interface {
 type MessageAdaptor interface {
 	Emit([]byte, []byte) error
 	Listen([]byte, message.Handler) message.Close
+}
+
+// Logger interface
+type Logger interface {
+	Debug(string, ...logger.Field)
+	Info(string, ...logger.Field)
+	Warn(string, ...logger.Field)
+	Error(string, ...logger.Field)
+	Fatal(string, ...logger.Field)
+	Panic(string, ...logger.Field)
 }
 
 // GQLEvent interface

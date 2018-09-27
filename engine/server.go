@@ -14,6 +14,7 @@ import (
 	"github.com/vaniila/hyper/dataloader"
 	"github.com/vaniila/hyper/fault"
 	"github.com/vaniila/hyper/gws"
+	"github.com/vaniila/hyper/logger"
 	"github.com/vaniila/hyper/message"
 	"github.com/vaniila/hyper/router"
 	"github.com/vaniila/hyper/websocket"
@@ -34,6 +35,7 @@ type server struct {
 	cors       *cors
 	cache      cache.Service
 	message    message.Service
+	logger     logger.Service
 	gws        gws.Service
 	dataloader dataloader.Service
 	router     router.Service
@@ -168,6 +170,8 @@ func (v *server) handlerRoute(conf router.RouteConfig) func(http.ResponseWriter,
 
 		pid := newID()
 
+		r.Header.Set("jaeger-debug-id", pid)
+
 		tracer := opentracing.GlobalTracer()
 
 		ctx, _ := tracer.Extract(
@@ -178,13 +182,12 @@ func (v *server) handlerRoute(conf router.RouteConfig) func(http.ResponseWriter,
 		span := tracer.StartSpan(
 			fmt.Sprintf("HTTP %s %s", r.Method, r.URL.String()),
 			ext.RPCServerOption(ctx),
-			opentracing.Tag{"machine-id", v.id},
-			opentracing.Tag{"process-id", pid},
+			opentracing.Tag{Key: "machine-id", Value: v.id},
+			opentracing.Tag{Key: "process-id", Value: pid},
 		)
 		defer span.Finish()
 
-		sid := fmt.Sprintf("%s", span.Context())
-		w.Header().Set("Trace-Id", sid)
+		w.Header().Set("Trace-Id", pid)
 
 		ext.HTTPMethod.Set(span, r.Method)
 		ext.HTTPUrl.Set(span, r.URL.String())
@@ -214,6 +217,7 @@ func (v *server) handlerRoute(conf router.RouteConfig) func(http.ResponseWriter,
 			warnings:        make([]fault.Cause, 0),
 			cache:           v.cache,
 			message:         v.message,
+			logger:          v.logger,
 			gqlsubscription: v.gws.Adaptor(),
 			dataloader:      v.dataloader,
 			dataloaders:     v.dataloader.Instance(),

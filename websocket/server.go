@@ -4,6 +4,7 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/vaniila/hyper/cache"
 	"github.com/vaniila/hyper/gws"
+	"github.com/vaniila/hyper/logger"
 	"github.com/vaniila/hyper/message"
 	"github.com/vaniila/hyper/router"
 	"github.com/vaniila/hyper/sync"
@@ -15,6 +16,7 @@ type server struct {
 	gws      gws.Service
 	cache    cache.Service
 	message  message.Service
+	logger   logger.Service
 	upgrader websocket.Upgrader
 }
 
