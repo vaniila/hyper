@@ -1,6 +1,8 @@
 package logger
 
-import "log"
+import (
+	"log"
+)
 
 type logger struct {
 	id string
@@ -18,56 +20,32 @@ func (l *logger) Stop() error {
 
 // Debug log at debug level
 func (l *logger) Debug(msg string, fields ...Field) {
-	if len(fields) == 0 {
-		log.Print(msg)
-		return
-	}
-	log.Printf(msg, l.fields(fields...))
+	log.Printf(msg, l.fields(fields)...)
 }
 
 // Info log at info level
 func (l *logger) Info(msg string, fields ...Field) {
-	if len(fields) == 0 {
-		log.Print(msg)
-		return
-	}
-	log.Printf(msg, l.fields(fields...))
+	log.Printf(msg, l.fields(fields)...)
 }
 
 // Warn log at warn level
 func (l *logger) Warn(msg string, fields ...Field) {
-	if len(fields) == 0 {
-		log.Print(msg)
-		return
-	}
-	log.Printf(msg, l.fields(fields...))
+	log.Printf(msg, l.fields(fields)...)
 }
 
 // Error log at error level
 func (l *logger) Error(msg string, fields ...Field) {
-	if len(fields) == 0 {
-		log.Print(msg)
-		return
-	}
-	log.Printf(msg, l.fields(fields...))
+	log.Printf(msg, l.fields(fields)...)
 }
 
 // Fatal log at fatal level
 func (l *logger) Fatal(msg string, fields ...Field) {
-	if len(fields) == 0 {
-		log.Fatal(msg)
-		return
-	}
-	log.Fatal(msg, l.fields(fields...))
+	log.Fatalf(msg, l.fields(fields)...)
 }
 
 // Panic log at panic level
 func (l *logger) Panic(msg string, fields ...Field) {
-	if len(fields) == 0 {
-		log.Panic(msg)
-		return
-	}
-	log.Panic(msg, l.fields(fields...))
+	log.Panicf(msg, l.fields(fields)...)
 }
 
 // String returns the logger name
@@ -76,12 +54,10 @@ func (l *logger) String() string {
 }
 
 // fields convert fields to a slice of interfaces (used for default logger)
-func (l *logger) fields(fields ...Field) []interface{} {
+func (l *logger) fields(fields []Field) []interface{} {
 	var is = make([]interface{}, len(fields))
-
-	for _, f := range fields {
-		is = append(is, f.Value())
+	for i, f := range fields {
+		is[i] = f.Value()
 	}
-
 	return is
 }
