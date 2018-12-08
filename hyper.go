@@ -29,6 +29,7 @@ func New(opts ...Option) *Hyper {
 		engine.DataLoader(o.DataLoader),
 		engine.Router(o.Router),
 		engine.Websocket(w),
+		engine.TraceID(o.TraceID),
 		engine.AllowedOrigins(o.AllowedOrigins),
 		engine.AllowOriginFunc(o.AllowOriginFunc),
 		engine.AllowedMethods(o.AllowedMethods),

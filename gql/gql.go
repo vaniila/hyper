@@ -1,107 +1,229 @@
 package gql
 
 import (
-	"fmt"
+	"context"
+	"net/http"
 	"time"
 
 	"github.com/graphql-go/graphql"
-	"github.com/vaniila/hyper/gql/argument"
-	"github.com/vaniila/hyper/gql/field"
-	"github.com/vaniila/hyper/gql/interfaces"
-	"github.com/vaniila/hyper/gql/object"
-	"github.com/vaniila/hyper/gql/schema"
-	"github.com/vaniila/hyper/gql/union"
+	"github.com/graphql-go/graphql/language/ast"
+	"github.com/opentracing/opentracing-go"
+	"github.com/vaniila/hyper/router"
 )
 
-// builtin graphql scalars
-var (
-	Int      = graphql.Int
-	Float    = graphql.Float
-	String   = graphql.String
-	Boolean  = graphql.Boolean
-	ID       = graphql.ID
-	DateTime = graphql.DateTime
+// ResolveHandler for field resolve
+type ResolveHandler func(Resolver) (interface{}, error)
 
-	objects = map[string]interfaces.Object{}
-)
+// ScalarSerializeHandler for scalar serialize resolver
+type ScalarSerializeHandler func(interface{}) (interface{}, error)
 
-// Schema creates new schema
-func Schema(opts ...schema.Option) graphql.Schema {
-	return schema.New(opts...).Config().Schema()
+// ScalarParseValueHandler for scalar parse value resolver
+type ScalarParseValueHandler func(interface{}) (interface{}, error)
+
+// ScalarParseLiteralHandler for scalar parse literal resolver
+type ScalarParseLiteralHandler func(ast.Value) (interface{}, error)
+
+// Schema for GraphQL
+type Schema interface {
+	Query(Object) Schema
+	Mutation(Object) Schema
+	Subscription(Object) Schema
+	Config() SchemaConfig
 }
 
-// Query option
-func Query(c interfaces.Object) schema.Option {
-	return schema.Query(c)
+// SchemaConfig interface
+type SchemaConfig interface {
+	Query() Object
+	Mutation() Object
+	Subscription() Object
+	Schema() graphql.Schema
 }
 
-// Mutation option
-func Mutation(c interfaces.Object) schema.Option {
-	return schema.Mutation(c)
+// Union for GraphQL
+type Union interface {
+	Description(string) Union
+	Resolve(interface{}, Object) Union
+	Config() UnionConfig
 }
 
-// Subscription option
-func Subscription(c interfaces.Object) schema.Option {
-	return schema.Subscription(c)
+// UnionConfig interface
+type UnionConfig interface {
+	Name() string
+	Description() string
+	Union() *graphql.Union
 }
 
-// Root creates new root object
-func Root() interfaces.Object {
-	s := fmt.Sprintf("root%v", time.Now().UnixNano())
-	return Object(s)
+// Scalar for GraphQL
+type Scalar interface {
+	Description(string) Scalar
+	Serialize(ScalarSerializeHandler) Scalar
+	ParseValue(ScalarParseValueHandler) Scalar
+	ParseLiteral(ScalarParseLiteralHandler) Scalar
+	Config() ScalarConfig
 }
 
-// Object creates new object
-func Object(s string) interfaces.Object {
-	if _, ok := objects[s]; !ok {
-		objects[s] = object.New(s)
-	}
-	return objects[s]
+// ScalarConfig interface
+type ScalarConfig interface {
+	Name() string
+	Description() string
+	Serialize(interface{}) (interface{}, error)
+	ParseValue(interface{}) (interface{}, error)
+	ParseLiteral(ast.Value) (interface{}, error)
 }
 
-// Field creates new field
-func Field(s string) interfaces.Field {
-	return field.New(s)
+// Enum for GraphQL
+type Enum interface {
+	Description() Enum
+	Values(...EnumOption) Enum
 }
 
-// Arg creates new argument
-func Arg(s string) interfaces.Argument {
-	return argument.New(s)
+// EnumConfig interface
+type EnumConfig interface {
+	Name() string
+	Description() string
+	Values() []EnumOption
 }
 
-// List creates a output list field
-func List(o interface{}) graphql.Output {
-	switch v := o.(type) {
-	case interfaces.Union:
-		return graphql.NewList(v.Config().Union())
-	case interfaces.Object:
-		return graphql.NewList(v.Config().Output())
-	case graphql.Type:
-		return graphql.NewList(v)
-	default:
-		return nil
-	}
+// EnumOption for GraphQL
+type EnumOption interface {
+	Description(string) EnumOption
+	Value(interface{}) EnumOption
+	Deprecation(string) EnumOption
+	Config() EnumOptionConfig
 }
 
-// Multiple creates a input list field
-func Multiple(o interface{}) graphql.Input {
-	switch v := o.(type) {
-	case interfaces.Object:
-		return graphql.NewList(v.Config().Input())
-	case graphql.Type:
-		return graphql.NewList(v)
-	default:
-		return nil
-	}
+// EnumOptionConfig interface
+type EnumOptionConfig interface {
+	Name() string
+	Description() string
+	Value() interface{}
+	Deprecation() string
 }
 
-// Union creates an union
-func Union(s string) interfaces.Union {
-	return union.New(s)
+// Object for GraphQL
+type Object interface {
+	Description(string) Object
+	Fields(...Field) Object
+	Args(...Argument) Object
+	Config() ObjectConfig
 }
 
-// HasObject checks if object exists
-func HasObject(s string) bool {
-	_, ok := objects[s]
-	return ok
+// ObjectConfig interface
+type ObjectConfig interface {
+	Name() string
+	Description() string
+	Fields() []Field
+	Args() []Argument
+	Output() *graphql.Object
+	HasOutput() bool
+	Input() *graphql.InputObject
+	HasInput() bool
+}
+
+// Field for GraphQL
+type Field interface {
+	Description(string) Field
+	DeprecationReason(string) Field
+	Type(interface{}) Field
+	Args(...Argument) Field
+	Resolve(ResolveHandler) Field
+	Config() FieldConfig
+}
+
+// FieldConfig interface
+type FieldConfig interface {
+	Name() string
+	Description() string
+	DeprecationReason() string
+	Type() graphql.Output
+	Args() []Argument
+	Field() *graphql.Field
+}
+
+// Argument for GraphQL
+type Argument interface {
+	Description(string) Argument
+	Type(interface{}) Argument
+	Default(interface{}) Argument
+	Require(bool) Argument
+	Config() ArgumentConfig
+}
+
+// ArgumentConfig interface
+type ArgumentConfig interface {
+	Name() string
+	Description() string
+	Type() graphql.Input
+	Object() Object
+	Default() interface{}
+	Require() bool
+	ArgumentConfig() *graphql.ArgumentConfig
+	InputObjectFieldConfig() *graphql.InputObjectFieldConfig
+}
+
+// Resolver interface
+type Resolver interface {
+	Context() Context
+	Params() graphql.ResolveParams
+	Source() interface{}
+	Arg(string) (Value, error)
+	MustArg(string) Value
+}
+
+// Value for GraphQL
+type Value interface {
+	In(string) Value
+	Key() string
+	Val() []byte
+	Has() bool
+	MustInt() int
+	MustI32() int32
+	MustI64() int64
+	MustU32() uint32
+	MustU64() uint64
+	MustF32() float32
+	MustF64() float64
+	MustBool() bool
+	MustTime() time.Time
+	MustArray() []interface{}
+	Any() interface{}
+	String() string
+}
+
+// Context interface
+type Context interface {
+	Deadline() (time.Time, bool)
+	Done() <-chan struct{}
+	Err() error
+	Value(interface{}) interface{}
+	Identity() router.Identity
+	MachineID() string
+	ProcessID() string
+	Context() context.Context
+	Req() *http.Request
+	Res() http.ResponseWriter
+	Client() router.Client
+	Cache() router.CacheAdaptor
+	Message() router.MessageAdaptor
+	Logger() router.Logger
+	GQLSubscription() router.GQLSubscriptionAdaptor
+	DataLoader(interface{}) router.DataLoaderAdaptor
+	KV() router.KV
+	Cookie() router.Cookie
+	Header() router.Header
+	MustParam(s string) router.Value
+	MustQuery(s string) router.Value
+	MustBody(s string) router.Value
+	Param(s string) (router.Value, error)
+	Query(s string) (router.Value, error)
+	Body(s string) (router.Value, error)
+	File(s string) []byte
+	StartSpan(operationName string, opts ...opentracing.StartSpanOption) opentracing.Span
+	Tracer() opentracing.Tracer
+	Abort()
+	IsAborted() bool
+	HasErrors() bool
+	Errors() []error
+	GraphQLError(error)
+	Native() router.Context
 }

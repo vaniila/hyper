@@ -2,7 +2,7 @@ package argument
 
 import (
 	"github.com/graphql-go/graphql"
-	"github.com/vaniila/hyper/gql/interfaces"
+	"github.com/vaniila/hyper/gql"
 )
 
 type compiled struct {
@@ -27,7 +27,7 @@ func (v *argumentconfig) Type() graphql.Input {
 	return v.argument.typ
 }
 
-func (v *argumentconfig) Object() interfaces.Object {
+func (v *argumentconfig) Object() gql.Object {
 	return v.argument.obj
 }
 

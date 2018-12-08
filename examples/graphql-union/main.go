@@ -2,8 +2,7 @@ package main
 
 import (
 	"github.com/vaniila/hyper"
-	"github.com/vaniila/hyper/gql"
-	"github.com/vaniila/hyper/gql/interfaces"
+	"github.com/vaniila/hyper/gql/graphql"
 )
 
 type noteA struct {
@@ -17,22 +16,22 @@ type noteB struct {
 }
 
 // create note A object
-var noteAType = gql.
+var noteAType = graphql.
 	Object("NoteA").
 	Fields(
-		gql.
+		graphql.
 			Field("id").
-			Type(gql.ID).
-			Resolve(func(r interfaces.Resolver) (interface{}, error) {
+			Type(graphql.ID).
+			Resolve(func(r graphql.Resolver) (interface{}, error) {
 				if p, ok := r.Source().(*noteA); ok {
 					return p.id, nil
 				}
 				return nil, nil
 			}),
-		gql.
+		graphql.
 			Field("content").
-			Type(gql.String).
-			Resolve(func(r interfaces.Resolver) (interface{}, error) {
+			Type(graphql.String).
+			Resolve(func(r graphql.Resolver) (interface{}, error) {
 				if p, ok := r.Source().(*noteA); ok {
 					return p.content, nil
 				}
@@ -41,22 +40,22 @@ var noteAType = gql.
 	)
 
 // create note B object
-var noteBType = gql.
+var noteBType = graphql.
 	Object("NoteB").
 	Fields(
-		gql.
+		graphql.
 			Field("id").
-			Type(gql.ID).
-			Resolve(func(r interfaces.Resolver) (interface{}, error) {
+			Type(graphql.ID).
+			Resolve(func(r graphql.Resolver) (interface{}, error) {
 				if p, ok := r.Source().(*noteA); ok {
 					return p.id, nil
 				}
 				return nil, nil
 			}),
-		gql.
+		graphql.
 			Field("content").
-			Type(gql.String).
-			Resolve(func(r interfaces.Resolver) (interface{}, error) {
+			Type(graphql.String).
+			Resolve(func(r graphql.Resolver) (interface{}, error) {
 				if p, ok := r.Source().(*noteA); ok {
 					return p.content, nil
 				}
@@ -64,7 +63,7 @@ var noteBType = gql.
 			}),
 	)
 
-var object = gql.
+var object = graphql.
 	Union("Note").
 	Description("A note item").
 	Resolve(new(noteA), noteAType).
@@ -76,22 +75,22 @@ var items = []interface{}{
 }
 
 // create graphql schema
-var schema = gql.
+var schema = graphql.
 	Schema(
-		gql.Query(
-			gql.
+		graphql.Query(
+			graphql.
 				Object("Query").
 				Fields(
-					gql.
+					graphql.
 						Field("note").
 						Type(object).
 						Args(
-							gql.
+							graphql.
 								Arg("id").
-								Type(gql.ID).
+								Type(graphql.ID).
 								Require(true),
 						).
-						Resolve(func(r interfaces.Resolver) (interface{}, error) {
+						Resolve(func(r graphql.Resolver) (interface{}, error) {
 							id := r.MustArg("id").String()
 							for _, note := range items {
 								if o, ok := note.(*noteA); ok {

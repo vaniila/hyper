@@ -3,21 +3,21 @@ package union
 import (
 	"reflect"
 
-	"github.com/vaniila/hyper/gql/interfaces"
+	"github.com/vaniila/hyper/gql"
 )
 
 type union struct {
 	name, description string
-	resolves          map[reflect.Type]interfaces.Object
-	conf              interfaces.UnionConfig
+	resolves          map[reflect.Type]gql.Object
+	conf              gql.UnionConfig
 }
 
-func (v *union) Description(s string) interfaces.Union {
+func (v *union) Description(s string) gql.Union {
 	v.description = s
 	return v
 }
 
-func (v *union) Resolve(t interface{}, o interfaces.Object) interfaces.Union {
+func (v *union) Resolve(t interface{}, o gql.Object) gql.Union {
 	rv := reflect.ValueOf(t)
 	if rv.IsNil() {
 		return v
@@ -32,7 +32,7 @@ func (v *union) Resolve(t interface{}, o interfaces.Object) interfaces.Union {
 	return v
 }
 
-func (v *union) Config() interfaces.UnionConfig {
+func (v *union) Config() gql.UnionConfig {
 	if v.conf == nil {
 		v.conf = &unionconfig{
 			union: v,
@@ -42,6 +42,6 @@ func (v *union) Config() interfaces.UnionConfig {
 }
 
 // New creates new union instance
-func New(s string) interfaces.Union {
-	return &union{name: s, resolves: make(map[reflect.Type]interfaces.Object)}
+func New(s string) gql.Union {
+	return &union{name: s, resolves: make(map[reflect.Type]gql.Object)}
 }

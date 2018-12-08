@@ -5,9 +5,8 @@ import (
 	"encoding/gob"
 
 	"github.com/vaniila/hyper"
-	"github.com/vaniila/hyper/gql"
 	"github.com/vaniila/hyper/gql/event"
-	"github.com/vaniila/hyper/gql/interfaces"
+	"github.com/vaniila/hyper/gql/graphql"
 )
 
 type note struct {
@@ -28,22 +27,22 @@ var notes = []*note{{
 }}
 
 // create note object
-var object = gql.
+var object = graphql.
 	Object("Note").
 	Fields(
-		gql.
+		graphql.
 			Field("id").
-			Type(gql.ID).
-			Resolve(func(r interfaces.Resolver) (interface{}, error) {
+			Type(graphql.ID).
+			Resolve(func(r graphql.Resolver) (interface{}, error) {
 				if p, ok := r.Source().(*note); ok {
 					return p.id, nil
 				}
 				return nil, nil
 			}),
-		gql.
+		graphql.
 			Field("content").
-			Type(gql.String).
-			Resolve(func(r interfaces.Resolver) (interface{}, error) {
+			Type(graphql.String).
+			Resolve(func(r graphql.Resolver) (interface{}, error) {
 				if p, ok := r.Source().(*note); ok {
 					return p.content, nil
 				}
@@ -52,22 +51,22 @@ var object = gql.
 	)
 
 // create graphql schema
-var schema = gql.
+var schema = graphql.
 	Schema(
-		gql.Subscription(
-			gql.
+		graphql.Subscription(
+			graphql.
 				Object("Subscription").
 				Fields(
-					gql.
+					graphql.
 						Field("noteUpdated").
 						Type(object).
 						Args(
-							gql.
+							graphql.
 								Arg("id").
-								Type(gql.ID).
+								Type(graphql.ID).
 								Require(false),
 						).
-						Resolve(func(r interfaces.Resolver) (interface{}, error) {
+						Resolve(func(r graphql.Resolver) (interface{}, error) {
 							if b, ok := r.Source().([]byte); ok {
 
 								slice := make([]string, 0)
@@ -82,20 +81,20 @@ var schema = gql.
 						}),
 				),
 		),
-		gql.Query(
-			gql.
+		graphql.Query(
+			graphql.
 				Object("Query").
 				Fields(
-					gql.
+					graphql.
 						Field("note").
 						Type(object).
 						Args(
-							gql.
+							graphql.
 								Arg("id").
-								Type(gql.ID).
+								Type(graphql.ID).
 								Require(true),
 						).
-						Resolve(func(r interfaces.Resolver) (interface{}, error) {
+						Resolve(func(r graphql.Resolver) (interface{}, error) {
 							id := r.MustArg("id").String()
 							for _, note := range notes {
 								if note.id == id {
@@ -106,24 +105,24 @@ var schema = gql.
 						}),
 				),
 		),
-		gql.Mutation(
-			gql.
+		graphql.Mutation(
+			graphql.
 				Object("Mutation").
 				Fields(
-					gql.
+					graphql.
 						Field("updateNote").
 						Type(object).
 						Args(
-							gql.
+							graphql.
 								Arg("id").
-								Type(gql.ID).
+								Type(graphql.ID).
 								Require(true),
-							gql.
+							graphql.
 								Arg("content").
-								Type(gql.String).
+								Type(graphql.String).
 								Require(true),
 						).
-						Resolve(func(r interfaces.Resolver) (interface{}, error) {
+						Resolve(func(r graphql.Resolver) (interface{}, error) {
 							id := r.MustArg("id").String()
 							for _, note := range notes {
 								if note.id == id {

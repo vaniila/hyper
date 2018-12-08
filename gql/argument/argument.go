@@ -2,26 +2,26 @@ package argument
 
 import (
 	"github.com/graphql-go/graphql"
-	"github.com/vaniila/hyper/gql/interfaces"
+	"github.com/vaniila/hyper/gql"
 )
 
 type argument struct {
 	name, description string
 	typ               graphql.Input
-	obj               interfaces.Object
+	obj               gql.Object
 	def               interface{}
 	require           bool
-	conf              interfaces.ArgumentConfig
+	conf              gql.ArgumentConfig
 }
 
-func (v *argument) Description(s string) interfaces.Argument {
+func (v *argument) Description(s string) gql.Argument {
 	v.description = s
 	return v
 }
 
-func (v *argument) Type(o interface{}) interfaces.Argument {
+func (v *argument) Type(o interface{}) gql.Argument {
 	switch t := o.(type) {
-	case interfaces.Object:
+	case gql.Object:
 		v.typ = t.Config().Input()
 		v.obj = t
 	case graphql.Input:
@@ -30,17 +30,17 @@ func (v *argument) Type(o interface{}) interfaces.Argument {
 	return v
 }
 
-func (v *argument) Default(o interface{}) interfaces.Argument {
+func (v *argument) Default(o interface{}) gql.Argument {
 	v.def = o
 	return v
 }
 
-func (v *argument) Require(b bool) interfaces.Argument {
+func (v *argument) Require(b bool) gql.Argument {
 	v.require = b
 	return v
 }
 
-func (v *argument) Config() interfaces.ArgumentConfig {
+func (v *argument) Config() gql.ArgumentConfig {
 	if v.conf == nil {
 		v.conf = &argumentconfig{
 			argument: v,
@@ -51,6 +51,6 @@ func (v *argument) Config() interfaces.ArgumentConfig {
 }
 
 // New creates new argument instance
-func New(s string) interfaces.Argument {
+func New(s string) gql.Argument {
 	return &argument{name: s}
 }

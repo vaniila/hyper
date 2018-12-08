@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/graphql-go/graphql"
-	"github.com/vaniila/hyper/gql/interfaces"
+	"github.com/vaniila/hyper/gql"
 	"github.com/vaniila/hyper/gql/server"
 	"github.com/vaniila/hyper/router"
 )
@@ -35,7 +35,7 @@ func (v *fieldconfig) Type() graphql.Output {
 	return v.field.typ
 }
 
-func (v *fieldconfig) Args() []interfaces.Argument {
+func (v *fieldconfig) Args() []gql.Argument {
 	return v.field.args
 }
 
@@ -61,7 +61,7 @@ func (v *fieldconfig) Field() *graphql.Field {
 			r := &resolve{
 				context: c,
 				params:  params,
-				values:  make([]interfaces.Value, len(v.field.args)),
+				values:  make([]gql.Value, len(v.field.args)),
 			}
 			v.Resolve(params.Args, r.values, v.field.args)
 			o, err := v.field.resolve(r)
@@ -69,7 +69,10 @@ func (v *fieldconfig) Field() *graphql.Field {
 				r.Context().GraphQLError(err)
 				return nil, err
 			}
-			return o, nil
+			if o != nil {
+				return o, nil
+			}
+			return nil, nil
 		}
 		v.compiled.field = &graphql.Field{
 			Name:              v.field.name,
@@ -83,7 +86,7 @@ func (v *fieldconfig) Field() *graphql.Field {
 	return v.compiled.field
 }
 
-func (v *fieldconfig) Resolve(params map[string]interface{}, values []interfaces.Value, args []interfaces.Argument) {
+func (v *fieldconfig) Resolve(params map[string]interface{}, values []gql.Value, args []gql.Argument) {
 	for i, arg := range args {
 		conf := arg.Config().ArgumentConfig()
 		data := &value{
@@ -140,7 +143,7 @@ func (v *fieldconfig) Resolve(params map[string]interface{}, values []interfaces
 				data.val = nil
 				data.has = true
 				if args := arg.Config().Object().Config().Args(); len(args) > 0 {
-					arr := make([]interfaces.Value, len(args))
+					arr := make([]gql.Value, len(args))
 					v.Resolve(o, arr, args)
 					data.parsed = arr
 				}

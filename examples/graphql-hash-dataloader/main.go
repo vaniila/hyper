@@ -6,8 +6,7 @@ import (
 
 	"github.com/vaniila/hyper"
 	"github.com/vaniila/hyper/dataloader"
-	"github.com/vaniila/hyper/gql"
-	"github.com/vaniila/hyper/gql/interfaces"
+	"github.com/vaniila/hyper/gql/graphql"
 )
 
 type user struct {
@@ -44,13 +43,13 @@ var loader = dataloader.BatchLoader(func(ctx context.Context, keys []interface{}
 })
 
 // create user object
-var object = gql.
+var object = graphql.
 	Object("User").
 	Fields(
-		gql.
+		graphql.
 			Field("id").
-			Type(gql.ID).
-			Resolve(func(r interfaces.Resolver) (interface{}, error) {
+			Type(graphql.ID).
+			Resolve(func(r graphql.Resolver) (interface{}, error) {
 				if p, ok := r.Source().(*user); ok {
 					return p.id, nil
 				}
@@ -59,25 +58,25 @@ var object = gql.
 	)
 
 var _ = object.
-	RecursiveFields(
-		gql.
+	Fields(
+		graphql.
 			Field("friend").
 			Args(
-				gql.
+				graphql.
 					Arg("id").
-					Type(gql.ID).
+					Type(graphql.ID).
 					Require(true),
 			).
 			Type(object).
-			Resolve(func(r interfaces.Resolver) (interface{}, error) {
+			Resolve(func(r graphql.Resolver) (interface{}, error) {
 				id := r.MustArg("id").String()
 				req := &request{id: id}
 				return r.Context().DataLoader(loader).Load(r.Context(), req)
 			}),
-		gql.
+		graphql.
 			Field("friends").
-			Type(gql.List(object)).
-			Resolve(func(r interfaces.Resolver) (interface{}, error) {
+			Type(graphql.List(object)).
+			Resolve(func(r graphql.Resolver) (interface{}, error) {
 				if p, ok := r.Source().(*user); ok {
 					return p.friends, nil
 				}
@@ -86,22 +85,22 @@ var _ = object.
 	)
 
 // create graphql schema
-var schema = gql.
+var schema = graphql.
 	Schema(
-		gql.Query(
-			gql.
+		graphql.Query(
+			graphql.
 				Object("Query").
 				Fields(
-					gql.
+					graphql.
 						Field("user").
 						Type(object).
 						Args(
-							gql.
+							graphql.
 								Arg("id").
-								Type(gql.ID).
+								Type(graphql.ID).
 								Require(true),
 						).
-						Resolve(func(r interfaces.Resolver) (interface{}, error) {
+						Resolve(func(r graphql.Resolver) (interface{}, error) {
 							id := r.MustArg("id").String()
 							req := &request{id: id}
 							return r.Context().DataLoader(loader).Load(r.Context(), req)

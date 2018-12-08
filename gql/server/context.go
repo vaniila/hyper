@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	opentracing "github.com/opentracing/opentracing-go"
+	"github.com/opentracing/opentracing-go"
 	"github.com/vaniila/hyper/router"
 )
 

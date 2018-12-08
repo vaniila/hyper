@@ -49,6 +49,9 @@ type Options struct {
 	// Websocket service
 	Websocket websocket.Service
 
+	// TraceID customize function
+	TraceID func() string
+
 	// AllowedOrigins is a list of origins a cross-domain request can be executed from.
 	// If the special "*" value is present in the list, all origins will be allowed.
 	// An origin may contain a wildcard (*) to replace 0 or more characters
@@ -94,7 +97,7 @@ func newID() string {
 	rand.Read(b[:])
 	b[8] = (b[8] | 0x40) & 0x7F
 	b[6] = (b[6] & 0xF) | (4 << 4)
-	return fmt.Sprintf("%x-%x-%x-%x-%x", b[0:4], b[4:6], b[6:8], b[8:10], b[10:])
+	return fmt.Sprintf("%x%x%x%x%x", b[0:4], b[4:6], b[6:8], b[8:10], b[10:])
 }
 
 func newOptions(opts ...Option) Options {
@@ -102,6 +105,7 @@ func newOptions(opts ...Option) Options {
 		ID:       newID(),
 		Addr:     ":0",
 		Protocol: HTTP,
+		TraceID:  newID,
 	}
 	for _, o := range opts {
 		o(&opt)
@@ -125,6 +129,9 @@ func newOptions(opts ...Option) Options {
 		opt.DataLoader = dataloader.New(
 			dataloader.ID(opt.ID),
 		)
+	}
+	if opt.TraceID == nil {
+		opt.TraceID = newID
 	}
 	return opt
 }
@@ -196,6 +203,13 @@ func Router(r router.Service) Option {
 func Websocket(w websocket.Service) Option {
 	return func(o *Options) {
 		o.Websocket = w
+	}
+}
+
+// TraceID to set trace id generator function
+func TraceID(f func() string) Option {
+	return func(o *Options) {
+		o.TraceID = f
 	}
 }
 

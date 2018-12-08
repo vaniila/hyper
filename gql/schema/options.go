@@ -1,13 +1,13 @@
 package schema
 
-import "github.com/vaniila/hyper/gql/interfaces"
+import "github.com/vaniila/hyper/gql"
 
 // Option func
 type Option func(*Options)
 
 // Options struct
 type Options struct {
-	Query, Mutation, Subscription interfaces.Object
+	Query, Mutation, Subscription gql.Object
 }
 
 func newOptions(opts ...Option) Options {
@@ -19,21 +19,21 @@ func newOptions(opts ...Option) Options {
 }
 
 // Query to set query object
-func Query(c interfaces.Object) Option {
+func Query(c gql.Object) Option {
 	return func(o *Options) {
 		o.Query = c
 	}
 }
 
 // Mutation to set mutation object
-func Mutation(c interfaces.Object) Option {
+func Mutation(c gql.Object) Option {
 	return func(o *Options) {
 		o.Mutation = c
 	}
 }
 
 // Subscription to set subscription object
-func Subscription(c interfaces.Object) Option {
+func Subscription(c gql.Object) Option {
 	return func(o *Options) {
 		o.Subscription = c
 	}

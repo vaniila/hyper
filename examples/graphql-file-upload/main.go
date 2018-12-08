@@ -6,23 +6,22 @@ import (
 	"net/http"
 
 	"github.com/vaniila/hyper"
-	"github.com/vaniila/hyper/gql"
-	"github.com/vaniila/hyper/gql/interfaces"
+	"github.com/vaniila/hyper/gql/graphql"
 )
 
 var store []byte
 
 // create graphql schema
-var schema = gql.
+var schema = graphql.
 	Schema(
-		gql.Query(
-			gql.
+		graphql.Query(
+			graphql.
 				Object("Query").
 				Fields(
-					gql.
+					graphql.
 						Field("file").
-						Type(gql.String).
-						Resolve(func(r interfaces.Resolver) (interface{}, error) {
+						Type(graphql.String).
+						Resolve(func(r graphql.Resolver) (interface{}, error) {
 							if len(store) == 0 {
 								return nil, errors.New("file has not been uploaded yet")
 							}
@@ -31,14 +30,14 @@ var schema = gql.
 						}),
 				),
 		),
-		gql.Mutation(
-			gql.
+		graphql.Mutation(
+			graphql.
 				Object("Mutation").
 				Fields(
-					gql.
+					graphql.
 						Field("upload").
-						Type(gql.String).
-						Resolve(func(r interfaces.Resolver) (interface{}, error) {
+						Type(graphql.String).
+						Resolve(func(r graphql.Resolver) (interface{}, error) {
 							store = r.Context().File("file")
 							if len(store) == 0 {
 								return nil, errors.New("file is missing")

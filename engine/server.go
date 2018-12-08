@@ -42,6 +42,7 @@ type server struct {
 	websocket  websocket.Service
 	uaparser   *uaparser.Parser
 	ln         *net.Listener
+	traceid    func() string
 }
 
 func (v *server) handleParameters(c *Context, route router.RouteConfig, params []router.Param) {
@@ -168,9 +169,7 @@ func (v *server) handleParameters(c *Context, route router.RouteConfig, params [
 func (v *server) handlerRoute(conf router.RouteConfig) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		pid := newID()
-
-		r.Header.Set("jaeger-debug-id", pid)
+		pid := v.traceid()
 
 		tracer := opentracing.GlobalTracer()
 
@@ -186,6 +185,8 @@ func (v *server) handlerRoute(conf router.RouteConfig) func(http.ResponseWriter,
 			opentracing.Tag{Key: "process-id", Value: pid},
 		)
 		defer span.Finish()
+
+		span.SetTag("jaeger-debug-id", pid)
 
 		w.Header().Set("Trace-Id", pid)
 

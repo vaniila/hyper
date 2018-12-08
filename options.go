@@ -54,6 +54,9 @@ type Options struct {
 	BeforeStart []func() error
 	AfterStop   []func() error
 
+	// TraceID customize function
+	TraceID func() string
+
 	// AllowedOrigins is a list of origins a cross-domain request can be executed from.
 	// If the special "*" value is present in the list, all origins will be allowed.
 	// An origin may contain a wildcard (*) to replace 0 or more characters
@@ -236,6 +239,13 @@ func BeforeStart(f func() error) Option {
 func AfterStop(f func() error) Option {
 	return func(o *Options) {
 		o.AfterStop = append(o.AfterStop, f)
+	}
+}
+
+// TraceID to set trace id generator function
+func TraceID(f func() string) Option {
+	return func(o *Options) {
+		o.TraceID = f
 	}
 }
 

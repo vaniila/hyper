@@ -4,7 +4,7 @@ import (
 	"log"
 
 	"github.com/graphql-go/graphql"
-	"github.com/vaniila/hyper/gql/interfaces"
+	"github.com/vaniila/hyper/gql"
 )
 
 type compiled struct {
@@ -16,15 +16,15 @@ type schemaconfig struct {
 	compiled *compiled
 }
 
-func (v *schemaconfig) Query() interfaces.Object {
+func (v *schemaconfig) Query() gql.Object {
 	return v.schema.query
 }
 
-func (v *schemaconfig) Mutation() interfaces.Object {
+func (v *schemaconfig) Mutation() gql.Object {
 	return v.schema.mut
 }
 
-func (v *schemaconfig) Subscription() interfaces.Object {
+func (v *schemaconfig) Subscription() gql.Object {
 	return v.schema.sub
 }
 

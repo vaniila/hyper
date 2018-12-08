@@ -2,8 +2,10 @@ package object
 
 import (
 	"github.com/graphql-go/graphql"
-	"github.com/vaniila/hyper/gql/interfaces"
+	"github.com/vaniila/hyper/gql"
 )
+
+var objects = map[string]*object{}
 
 type compiled struct {
 	object      *graphql.Object
@@ -23,15 +25,11 @@ func (v *objectconfig) Description() string {
 	return v.object.description
 }
 
-func (v *objectconfig) Fields() []interfaces.Field {
+func (v *objectconfig) Fields() []gql.Field {
 	return v.object.fields
 }
 
-func (v *objectconfig) RecursiveFields() []interfaces.Field {
-	return v.object.recursiveFields
-}
-
-func (v *objectconfig) Args() []interfaces.Argument {
+func (v *objectconfig) Args() []gql.Argument {
 	return v.object.args
 }
 
@@ -41,16 +39,12 @@ func (v *objectconfig) Output() *graphql.Object {
 	}
 	if v.compiled.object == nil {
 		var fields = graphql.Fields{}
-		for _, field := range v.object.fields {
-			c := field.Config()
-			fields[c.Name()] = c.Field()
-		}
 		v.compiled.object = graphql.NewObject(graphql.ObjectConfig{
 			Name:        v.object.name,
 			Description: v.object.description,
 			Fields:      fields,
 		})
-		for _, field := range v.object.recursiveFields {
+		for _, field := range v.object.fields {
 			c := field.Config()
 			v.compiled.object.AddFieldConfig(c.Name(), c.Field())
 		}

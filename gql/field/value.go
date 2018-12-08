@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/vaniila/hyper/fault"
-	"github.com/vaniila/hyper/gql/interfaces"
+	"github.com/vaniila/hyper/gql"
 	"github.com/vaniila/hyper/router"
 )
 
@@ -18,9 +18,9 @@ type value struct {
 	parsed interface{}
 }
 
-func (v *value) In(s string) interfaces.Value {
+func (v *value) In(s string) gql.Value {
 	switch o := v.parsed.(type) {
-	case []interfaces.Value:
+	case []gql.Value:
 		for _, r := range o {
 			if r.Key() == s {
 				return r
