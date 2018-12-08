@@ -43,8 +43,8 @@ func (v *argument) Require(b bool) gql.Argument {
 
 func (v *argument) Init(fn gql.ArgumentInitializer) gql.Argument {
 	if !v.initialized {
-		fn(v)
 		v.initialized = true
+		fn(v)
 	}
 	return v
 }

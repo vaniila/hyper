@@ -48,8 +48,8 @@ func (v *object) Args(args ...gql.Argument) gql.Object {
 
 func (v *object) Init(fn gql.ObjectInitializer) gql.Object {
 	if !v.initialized {
-		fn(v)
 		v.initialized = true
+		fn(v)
 	}
 	return v
 }

@@ -59,8 +59,8 @@ func (v *field) Resolve(h gql.ResolveHandler) gql.Field {
 
 func (v *field) Init(fn gql.FieldInitializer) gql.Field {
 	if !v.initialized {
-		fn(v)
 		v.initialized = true
+		fn(v)
 	}
 	return v
 }
