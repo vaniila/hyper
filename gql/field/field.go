@@ -12,6 +12,7 @@ type field struct {
 	args                          []gql.Argument
 	argsMap                       map[string]struct{}
 	resolve                       gql.ResolveHandler
+	initialized                   bool
 	conf                          gql.FieldConfig
 }
 
@@ -53,6 +54,14 @@ func (v *field) Args(args ...gql.Argument) gql.Field {
 
 func (v *field) Resolve(h gql.ResolveHandler) gql.Field {
 	v.resolve = h
+	return v
+}
+
+func (v *field) Init(fn gql.FieldInitializer) gql.Field {
+	if !v.initialized {
+		fn(v)
+		v.initialized = true
+	}
 	return v
 }
 

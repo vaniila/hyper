@@ -8,6 +8,7 @@ type object struct {
 	argsMap           map[string]struct{}
 	fields            []gql.Field
 	fieldsMap         map[string]struct{}
+	initialized       bool
 	conf              gql.ObjectConfig
 }
 
@@ -41,6 +42,14 @@ func (v *object) Args(args ...gql.Argument) gql.Object {
 				v.argsMap[name] = struct{}{}
 			}
 		}
+	}
+	return v
+}
+
+func (v *object) Init(fn gql.ObjectInitializer) gql.Object {
+	if !v.initialized {
+		fn(v)
+		v.initialized = true
 	}
 	return v
 }

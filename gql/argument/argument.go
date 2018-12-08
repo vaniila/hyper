@@ -11,6 +11,7 @@ type argument struct {
 	obj               gql.Object
 	def               interface{}
 	require           bool
+	initialized       bool
 	conf              gql.ArgumentConfig
 }
 
@@ -37,6 +38,14 @@ func (v *argument) Default(o interface{}) gql.Argument {
 
 func (v *argument) Require(b bool) gql.Argument {
 	v.require = b
+	return v
+}
+
+func (v *argument) Init(fn gql.ArgumentInitializer) gql.Argument {
+	if !v.initialized {
+		fn(v)
+		v.initialized = true
+	}
 	return v
 }
 

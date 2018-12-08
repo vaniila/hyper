@@ -11,6 +11,15 @@ import (
 	"github.com/vaniila/hyper/router"
 )
 
+// ObjectInitializer func
+type ObjectInitializer func(Object)
+
+// FieldInitializer func
+type FieldInitializer func(Field)
+
+// ArgumentInitializer func
+type ArgumentInitializer func(Argument)
+
 // ResolveHandler for field resolve
 type ResolveHandler func(Resolver) (interface{}, error)
 
@@ -105,6 +114,7 @@ type Object interface {
 	Description(string) Object
 	Fields(...Field) Object
 	Args(...Argument) Object
+	Init(ObjectInitializer) Object
 	Config() ObjectConfig
 }
 
@@ -127,6 +137,7 @@ type Field interface {
 	Type(interface{}) Field
 	Args(...Argument) Field
 	Resolve(ResolveHandler) Field
+	Init(FieldInitializer) Field
 	Config() FieldConfig
 }
 
@@ -146,6 +157,7 @@ type Argument interface {
 	Type(interface{}) Argument
 	Default(interface{}) Argument
 	Require(bool) Argument
+	Init(ArgumentInitializer) Argument
 	Config() ArgumentConfig
 }
 
