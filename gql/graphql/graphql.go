@@ -10,6 +10,7 @@ import (
 	"github.com/vaniila/hyper/gql/enum"
 	"github.com/vaniila/hyper/gql/field"
 	"github.com/vaniila/hyper/gql/object"
+	"github.com/vaniila/hyper/gql/scalar"
 	"github.com/vaniila/hyper/gql/schema"
 	"github.com/vaniila/hyper/gql/union"
 )
@@ -72,6 +73,26 @@ func Arg(s string) gql.Argument {
 	return argument.New(s)
 }
 
+// Enum creates an enum
+func Enum(name string) gql.Enum {
+	return enum.New(name)
+}
+
+// Value creates enum value option
+func Value(name string) gql.EnumValue {
+	return enum.Value(name)
+}
+
+// Union creates an union
+func Union(name string) gql.Union {
+	return union.New(name)
+}
+
+// Scalar creates scalar type
+func Scalar(name string) gql.Scalar {
+	return scalar.New(name)
+}
+
 // List creates a output list field
 func List(o interface{}) graphql.Output {
 	switch v := o.(type) {
@@ -96,19 +117,4 @@ func Multiple(o interface{}) graphql.Input {
 	default:
 		return nil
 	}
-}
-
-// Enum creates an enum
-func Enum(name string) gql.Enum {
-	return enum.New(name)
-}
-
-// Value creates enum value option
-func Value(name string) gql.EnumValue {
-	return enum.Value(name)
-}
-
-// Union creates an union
-func Union(name string) gql.Union {
-	return union.New(name)
 }

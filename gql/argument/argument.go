@@ -27,6 +27,8 @@ func (v *argument) Type(o interface{}) gql.Argument {
 		v.obj = t
 	case gql.Enum:
 		v.typ = t.Config().Enum()
+	case gql.Scalar:
+		v.typ = t.Config().Scalar()
 	case graphql.Input:
 		v.typ = t
 	}

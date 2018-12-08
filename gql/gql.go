@@ -75,9 +75,10 @@ type Scalar interface {
 type ScalarConfig interface {
 	Name() string
 	Description() string
-	Serialize(interface{}) (interface{}, error)
-	ParseValue(interface{}) (interface{}, error)
-	ParseLiteral(ast.Value) (interface{}, error)
+	Serialize() ScalarSerializeHandler
+	ParseValue() ScalarParseValueHandler
+	ParseLiteral() ScalarParseLiteralHandler
+	Scalar() *graphql.Scalar
 }
 
 // Enum for GraphQL
