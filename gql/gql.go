@@ -82,30 +82,32 @@ type ScalarConfig interface {
 
 // Enum for GraphQL
 type Enum interface {
-	Description() Enum
-	Values(...EnumOption) Enum
+	Description(string) Enum
+	Values(...EnumValue) Enum
+	Config() EnumConfig
 }
 
 // EnumConfig interface
 type EnumConfig interface {
 	Name() string
 	Description() string
-	Values() []EnumOption
+	Values() []EnumValue
+	Enum() *graphql.Enum
 }
 
-// EnumOption for GraphQL
-type EnumOption interface {
-	Description(string) EnumOption
-	Value(interface{}) EnumOption
-	Deprecation(string) EnumOption
-	Config() EnumOptionConfig
+// EnumValue for GraphQL
+type EnumValue interface {
+	Description(string) EnumValue
+	Is(interface{}) EnumValue
+	Deprecation(string) EnumValue
+	Config() EnumValueConfig
 }
 
-// EnumOptionConfig interface
-type EnumOptionConfig interface {
+// EnumValueConfig interface
+type EnumValueConfig interface {
 	Name() string
 	Description() string
-	Value() interface{}
+	Is() interface{}
 	Deprecation() string
 }
 

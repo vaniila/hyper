@@ -7,6 +7,7 @@ import (
 	"github.com/graphql-go/graphql"
 	"github.com/vaniila/hyper/gql"
 	"github.com/vaniila/hyper/gql/argument"
+	"github.com/vaniila/hyper/gql/enum"
 	"github.com/vaniila/hyper/gql/field"
 	"github.com/vaniila/hyper/gql/object"
 	"github.com/vaniila/hyper/gql/schema"
@@ -24,8 +25,10 @@ var (
 )
 
 type (
+	// Resolver alias
 	Resolver = gql.Resolver
-	Context  = gql.Context
+	// Context alias
+	Context = gql.Context
 )
 
 // Schema creates new schema
@@ -95,7 +98,17 @@ func Multiple(o interface{}) graphql.Input {
 	}
 }
 
+// Enum creates an enum
+func Enum(name string) gql.Enum {
+	return enum.New(name)
+}
+
+// Value creates enum value option
+func Value(name string) gql.EnumValue {
+	return enum.Value(name)
+}
+
 // Union creates an union
-func Union(s string) gql.Union {
-	return union.New(s)
+func Union(name string) gql.Union {
+	return union.New(name)
 }

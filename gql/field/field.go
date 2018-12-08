@@ -33,6 +33,8 @@ func (v *field) Type(t interface{}) gql.Field {
 	case gql.Object:
 		v.typ = nil
 		v.obj = o
+	case gql.Enum:
+		v.typ = o.Config().Enum()
 	case gql.Union:
 		v.typ = o.Config().Union()
 	}
