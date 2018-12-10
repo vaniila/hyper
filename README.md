@@ -1,16 +1,45 @@
-# hyper
-HTTP web framework with DataLoader, GraphQL and Swagger integration
+hyper
+=====
 
-## Feature
+[![Build Status](https://travis-ci.org/vaniila/hyper.svg?branch=master)](https://travis-ci.org/vaniila/hyper)
+[![GoDoc](https://godoc.org/github.com/vaniila/hyper?status.svg)](https://godoc.org/github.com/vaniila/hyper)
 
-* HTTP 2
-* Websocket
-* GraphQL + Subscription
-* Dataloader
-* Swagger
-* Opentracing
+Package hyper implements an ease-of-use HTTP web framework for the Go
+programming language. Featuring GraphQL (w/ Subscription), DataLoader
+and Swagger integration.
 
-## Contributing
+Project Website: https://github.com/vaniila/hyper<br>
+API documentation: https://godoc.org/github.com/vaniila/hyper<br>
+API examples: https://github.com/vaniila/hyper/tree/master/examples
+
+Installation
+------------
+
+    go get github.com/vaniila/hyper
+
+Features
+--------
+
+* Built-in support for HTTP/2 protocol
+* Built-in support for Opentracing
+* Build GraphQL APIs
+  * Support for GraphQL subscription via websocket
+  * Implement custom object, argument, enum, scalar and union types
+  * API to access the Dataloader interface
+* Support for websocket
+  * Authorization via middleware functions
+  * Scales horizontally with PubSub channels
+* Build RESTful with swagger integration
+* Built-in request validation (Query, Body and Header)
+* Support for namespaces
+* Customizable middleware and HTTP error handling
+* Define and use custom logger
+* Identity and access management
+* Configurable CORS
+* Automatic crash prevention
+
+Contributing
+------------
 
 Everyone is encouraged to help improve this project. Here are a few ways you can help:
 
@@ -19,31 +48,9 @@ Everyone is encouraged to help improve this project. Here are a few ways you can
 - Write, clarify, or fix documentation
 - Suggest or add new features
 
-## License
+License
+-------
 
-This project is distributed under the MIT license found in the [LICENSE](./LICENSE) file.
-
-```
-The MIT License (MIT)
-
-Copyright (c) 2018 Vaniila Inc
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-```
-
+> Copyright (c) Vaniila, Inc. and its affiliates.
+> Use of this source code is governed by a MIT license
+> that can be found in the [LICENSE](./LICENSE) file.
