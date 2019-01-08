@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package gws;
+
+message Distribution {
+  string field = 10;
+  bytes payload = 20;
+  repeated Filter filters = 30;
+  Condition condition = 50;
+  bool strict = 60;
+}
+
+message Filter {
+  string key = 1;
+  oneof val_oneof {
+    string string_value = 10;
+    int64 int_value = 11;
+    double float_value = 12;
+    bool bool_value = 13;
+    bytes bytes_value = 14;
+    int64 time_value = 15;
+  }
+}
+
+message Condition {
+  repeated int64 EqIDs = 10;
+  repeated int64 NeIDs = 11;
+  repeated string EqKeys = 20;
+  repeated string NeKeys = 21;
+}

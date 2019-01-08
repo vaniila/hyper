@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package sync;
+
+message Packet {
+
+  string ID = 1;            // packet id
+
+  bool Signature = 10;      // packet requires delivery signature
+  int32 Action = 20;        // action | 1 => subscribe, 2 => unsubscribe, 3 => message, 4 => reply, 5 => error
+
+  string Namespace = 30;    // namespace
+  string Channel = 40;      // channel name
+
+  string Call = 50;         // call action
+  bytes Message = 60;       // data content
+
+  string Error = 70;        // error
+}
