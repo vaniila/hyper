@@ -53,6 +53,12 @@ type Options struct {
 	// TraceID customize function
 	TraceID func() string
 
+	// EnableCompression to enable gzip compression
+	EnableCompression bool
+
+	// EnableCORS to attach cors handler to http server
+	EnableCORS bool
+
 	// AllowedOrigins is a list of origins a cross-domain request can be executed from.
 	// If the special "*" value is present in the list, all origins will be allowed.
 	// An origin may contain a wildcard (*) to replace 0 or more characters
@@ -211,6 +217,20 @@ func Websocket(w websocket.Service) Option {
 func TraceID(f func() string) Option {
 	return func(o *Options) {
 		o.TraceID = f
+	}
+}
+
+// EnableCompression to enable gzip compression
+func EnableCompression(b bool) Option {
+	return func(o *Options) {
+		o.EnableCompression = b
+	}
+}
+
+// EnableCORS to attach cors handler to http server
+func EnableCORS(b bool) Option {
+	return func(o *Options) {
+		o.EnableCORS = b
 	}
 }
 

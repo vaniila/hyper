@@ -58,6 +58,12 @@ type Options struct {
 	// TraceID customize function
 	TraceID func() string
 
+	// EnableCompression to enable gzip compression
+	EnableCompression bool
+
+	// EnableCORS to attach cors handler to http server
+	EnableCORS bool
+
 	// AllowedOrigins is a list of origins a cross-domain request can be executed from.
 	// If the special "*" value is present in the list, all origins will be allowed.
 	// An origin may contain a wildcard (*) to replace 0 or more characters
@@ -250,9 +256,17 @@ func TraceID(f func() string) Option {
 	}
 }
 
+// EnableCompression to enable gzip compression
+func EnableCompression(b bool) Option {
+	return func(o *Options) {
+		o.EnableCompression = b
+	}
+}
+
 // AllowedOrigins to add allowed origins for CORS
 func AllowedOrigins(a []string) Option {
 	return func(o *Options) {
+		o.EnableCORS = true
 		o.AllowedOrigins = append(o.AllowedOrigins, a...)
 	}
 }
@@ -260,6 +274,7 @@ func AllowedOrigins(a []string) Option {
 // AllowOriginFunc to add func to set CORS
 func AllowOriginFunc(f func(*http.Request, string) bool) Option {
 	return func(o *Options) {
+		o.EnableCORS = true
 		o.AllowOriginFunc = f
 	}
 }
@@ -267,6 +282,7 @@ func AllowOriginFunc(f func(*http.Request, string) bool) Option {
 // AllowedMethods to add allowed methods for CORS
 func AllowedMethods(a []string) Option {
 	return func(o *Options) {
+		o.EnableCORS = true
 		o.AllowedMethods = append(o.AllowedMethods, a...)
 	}
 }
@@ -274,6 +290,7 @@ func AllowedMethods(a []string) Option {
 // AllowedHeaders to add allowed headers for CORS
 func AllowedHeaders(a []string) Option {
 	return func(o *Options) {
+		o.EnableCORS = true
 		o.AllowedHeaders = append(o.AllowedMethods, a...)
 	}
 }
@@ -281,6 +298,7 @@ func AllowedHeaders(a []string) Option {
 // ExposedHeaders to add exposed headers
 func ExposedHeaders(a []string) Option {
 	return func(o *Options) {
+		o.EnableCORS = true
 		o.ExposedHeaders = append(o.AllowedMethods, a...)
 	}
 }
@@ -288,6 +306,7 @@ func ExposedHeaders(a []string) Option {
 // AllowCredentials to set allowed credentials
 func AllowCredentials(b bool) Option {
 	return func(o *Options) {
+		o.EnableCORS = true
 		o.AllowCredentials = b
 	}
 }
@@ -295,6 +314,7 @@ func AllowCredentials(b bool) Option {
 // MaxAge to set max age header
 func MaxAge(i int) Option {
 	return func(o *Options) {
+		o.EnableCORS = true
 		o.MaxAge = i
 	}
 }
@@ -302,6 +322,7 @@ func MaxAge(i int) Option {
 // OptionsPassthrough to set options pass through value
 func OptionsPassthrough(b bool) Option {
 	return func(o *Options) {
+		o.EnableCORS = true
 		o.OptionsPassthrough = b
 	}
 }

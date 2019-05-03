@@ -384,7 +384,16 @@ func (v *server) Start() error {
 	mux.Use(middleware.RealIP)
 	mux.Use(middleware.Recoverer)
 	mux.Use(middleware.Heartbeat("/healthz"))
-	mux.Use(v.cors.Handler)
+
+	// enable gzip compression
+	if v.opts.EnableCompression {
+		mux.Use(middleware.DefaultCompress)
+	}
+
+	// attach cors handler if any cors parameters have been given
+	if v.opts.EnableCORS {
+		mux.Use(v.cors.Handler)
+	}
 
 	v.buildRoutes(mux, v.router.Routes())
 

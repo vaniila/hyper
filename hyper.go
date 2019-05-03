@@ -30,6 +30,8 @@ func New(opts ...Option) *Hyper {
 		engine.Router(o.Router),
 		engine.Websocket(w),
 		engine.TraceID(o.TraceID),
+		engine.EnableCompression(o.EnableCompression),
+		engine.EnableCORS(o.EnableCORS),
 		engine.AllowedOrigins(o.AllowedOrigins),
 		engine.AllowOriginFunc(o.AllowOriginFunc),
 		engine.AllowedMethods(o.AllowedMethods),
