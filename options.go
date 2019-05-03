@@ -3,6 +3,7 @@ package hyper
 import (
 	"crypto/rand"
 	"fmt"
+	"net/http"
 
 	"github.com/vaniila/hyper/cache"
 	"github.com/vaniila/hyper/dataloader"
@@ -68,7 +69,7 @@ type Options struct {
 	// AllowOriginFunc is a custom function to validate the origin. It take the origin
 	// as argument and returns true if allowed or false otherwise. If this option is
 	// set, the content of AllowedOrigins is ignored.
-	AllowOriginFunc func(origin string) bool
+	AllowOriginFunc func(r *http.Request, origin string) bool
 
 	// AllowedMethods is a list of methods the client is allowed to use with
 	// cross-domain requests. Default value is simple methods (GET and POST)
@@ -257,7 +258,7 @@ func AllowedOrigins(a []string) Option {
 }
 
 // AllowOriginFunc to add func to set CORS
-func AllowOriginFunc(f func(string) bool) Option {
+func AllowOriginFunc(f func(*http.Request, string) bool) Option {
 	return func(o *Options) {
 		o.AllowOriginFunc = f
 	}

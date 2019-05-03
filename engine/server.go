@@ -7,8 +7,9 @@ import (
 	"io"
 	"net"
 
-	"github.com/pressly/chi"
-	"github.com/pressly/chi/middleware"
+	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/middleware"
+	"github.com/go-chi/cors"
 	"github.com/ua-parser/uap-go/uaparser"
 	"github.com/vaniila/hyper/cache"
 	"github.com/vaniila/hyper/dataloader"
@@ -32,7 +33,7 @@ type server struct {
 	id         string
 	addr       string
 	protocol   Protocol
-	cors       *cors
+	cors       *cors.Cors
 	cache      cache.Service
 	message    message.Service
 	logger     logger.Service
@@ -43,6 +44,7 @@ type server struct {
 	uaparser   *uaparser.Parser
 	ln         *net.Listener
 	traceid    func() string
+	opts       Options
 }
 
 func (v *server) handleParameters(c *Context, route router.RouteConfig, params []router.Param) {
@@ -364,12 +366,23 @@ func (v *server) Start() error {
 	}
 	v.ln = &ln
 
+	// create cors handler
+	v.cors = cors.New(cors.Options{
+		AllowedOrigins:     v.opts.AllowedOrigins,
+		AllowOriginFunc:    v.opts.AllowOriginFunc,
+		AllowedMethods:     v.opts.AllowedMethods,
+		AllowedHeaders:     v.opts.AllowedHeaders,
+		ExposedHeaders:     v.opts.ExposedHeaders,
+		AllowCredentials:   v.opts.AllowCredentials,
+		MaxAge:             v.opts.MaxAge,
+		OptionsPassthrough: v.opts.OptionsPassthrough,
+	})
+
 	// create router
 	mux := chi.NewRouter()
 	mux.Use(middleware.RequestID)
 	mux.Use(middleware.RealIP)
 	mux.Use(middleware.Recoverer)
-	mux.Use(middleware.DefaultCompress)
 	mux.Use(middleware.Heartbeat("/healthz"))
 	mux.Use(v.cors.Handler)
 

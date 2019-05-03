@@ -22,7 +22,6 @@ func New(opts ...Option) Service {
 		websocket:  o.Websocket,
 		logger:     o.Logger,
 		traceid:    o.TraceID,
-		cors:       newCors(o),
 	}
 	return s
 }
