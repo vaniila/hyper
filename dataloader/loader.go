@@ -78,76 +78,95 @@ func newBatchedLoader(batchFn Batch, opts Options) DataLoader {
 	}
 }
 
+func (l *Loader) async(fn func() (interface{}, error)) (interface{}, error) {
+	type result struct {
+		data interface{}
+		err  error
+	}
+	ch := make(chan *result, 1)
+	go func() {
+		defer close(ch)
+		data, err := fn()
+		ch <- &result{data: data, err: err}
+	}()
+	return func() (interface{}, error) {
+		r := <-ch
+		return r.data, r.err
+	}, nil
+}
+
 // Load load/resolves the given key, returning a channel that will contain the value and error
 func (l *Loader) Load(ctx context.Context, key interface{}) (interface{}, error) {
-	c := make(chan Result, 1)
-	var result struct {
-		mu    sync.RWMutex
-		value Result
-	}
+	return l.async(func() (interface{}, error) {
+		c := make(chan Result, 1)
+		var result struct {
+			mu    sync.RWMutex
+			value Result
+		}
 
-	// lock to prevent duplicate keys coming in before item has been added to cache.
-	l.cacheLock.Lock()
-	if v, ok := l.cache.Get(key); ok {
-		defer l.cacheLock.Unlock()
-		return v()
-	}
+		// lock to prevent duplicate keys coming in before item has been added to cache.
+		l.cacheLock.Lock()
+		if v, ok := l.cache.Get(key); ok {
+			defer l.cacheLock.Unlock()
+			return v()
+		}
 
-	thunk := func() (interface{}, error) {
-		result.mu.RLock()
-		resultNotSet := result.value == nil
-		result.mu.RUnlock()
+		thunk := func() (interface{}, error) {
+			result.mu.RLock()
+			resultNotSet := result.value == nil
+			result.mu.RUnlock()
 
-		if resultNotSet {
-			result.mu.Lock()
-			if v, ok := <-c; ok {
-				result.value = v
+			if resultNotSet {
+				result.mu.Lock()
+				if v, ok := <-c; ok {
+					result.value = v
+				}
+				result.mu.Unlock()
 			}
-			result.mu.Unlock()
+			result.mu.RLock()
+			defer result.mu.RUnlock()
+			return result.value.Data(), result.value.Error()
 		}
-		result.mu.RLock()
-		defer result.mu.RUnlock()
-		return result.value.Data(), result.value.Error()
-	}
 
-	l.cache.Set(key, thunk)
-	l.cacheLock.Unlock()
+		l.cache.Set(key, thunk)
+		l.cacheLock.Unlock()
 
-	// this is sent to batch fn. It contains the key and the channel to return the
-	// the result on
-	req := &batchRequest{key, c}
+		// this is sent to batch fn. It contains the key and the channel to return the
+		// the result on
+		req := &batchRequest{key, c}
 
-	l.batchLock.Lock()
-	// start the batch window if it hasn't already started.
-	if l.curBatcher == nil {
-		l.curBatcher = l.newBatcher(l.silent)
-		// start the current batcher batch function
-		go l.curBatcher.batch(ctx)
-		// start a sleeper for the current batcher
-		l.endSleeper = make(chan bool)
-		go l.sleeper(l.curBatcher, l.endSleeper)
-	}
-
-	l.curBatcher.input <- req
-
-	// if we need to keep track of the count (max batch), then do so.
-	if l.batchCap > 0 {
-		l.count++
-		// if we hit our limit, force the batch to start
-		if l.count == l.batchCap {
-			// end the batcher synchronously here because another call to Load
-			// may concurrently happen and needs to go to a new batcher.
-			l.curBatcher.end()
-			// end the sleeper for the current batcher.
-			// this is to stop the goroutine without waiting for the
-			// sleeper timeout.
-			close(l.endSleeper)
-			l.reset()
+		l.batchLock.Lock()
+		// start the batch window if it hasn't already started.
+		if l.curBatcher == nil {
+			l.curBatcher = l.newBatcher(l.silent)
+			// start the current batcher batch function
+			go l.curBatcher.batch(ctx)
+			// start a sleeper for the current batcher
+			l.endSleeper = make(chan bool)
+			go l.sleeper(l.curBatcher, l.endSleeper)
 		}
-	}
-	l.batchLock.Unlock()
 
-	return thunk()
+		l.curBatcher.input <- req
+
+		// if we need to keep track of the count (max batch), then do so.
+		if l.batchCap > 0 {
+			l.count++
+			// if we hit our limit, force the batch to start
+			if l.count == l.batchCap {
+				// end the batcher synchronously here because another call to Load
+				// may concurrently happen and needs to go to a new batcher.
+				l.curBatcher.end()
+				// end the sleeper for the current batcher.
+				// this is to stop the goroutine without waiting for the
+				// sleeper timeout.
+				close(l.endSleeper)
+				l.reset()
+			}
+		}
+		l.batchLock.Unlock()
+
+		return thunk()
+	})
 }
 
 // LoadMany loads mulitiple keys, returning a thunk (type: ThunkMany) that will resolve the keys passed in.
