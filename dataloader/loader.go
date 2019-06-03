@@ -78,7 +78,7 @@ func newBatchedLoader(batchFn Batch, opts Options) DataLoader {
 	}
 }
 
-func (l *Loader) async(fn func() (interface{}, error)) (interface{}, error) {
+func (l *Loader) async(ctx context.Context, fn func() (interface{}, error)) (interface{}, error) {
 	type result struct {
 		data interface{}
 		err  error
@@ -87,17 +87,26 @@ func (l *Loader) async(fn func() (interface{}, error)) (interface{}, error) {
 	go func() {
 		defer close(ch)
 		data, err := fn()
-		ch <- &result{data: data, err: err}
+		// graphql.Do will finish immediately in the case concurrentFieldFoo returns an error. Therefore,
+		// when using goroutines make sure to utilize a done channel to avoid leaking goroutines.
+		select {
+		case ch <- &result{data: data, err: err}:
+		case <-ctx.Done():
+		}
 	}()
 	return func() (interface{}, error) {
-		r := <-ch
-		return r.data, r.err
+		select {
+		case r := <-ch:
+			return r.data, r.err
+		case <-ctx.Done():
+			return nil, nil
+		}
 	}, nil
 }
 
 // Load load/resolves the given key, returning a channel that will contain the value and error
 func (l *Loader) Load(ctx context.Context, key interface{}) (interface{}, error) {
-	return l.async(func() (interface{}, error) {
+	return l.async(ctx, func() (interface{}, error) {
 		c := make(chan Result, 1)
 		var result struct {
 			mu    sync.RWMutex
