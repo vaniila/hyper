@@ -61,6 +61,31 @@ func (v *field) Resolve(h gql.ResolveHandler) gql.Field {
 	return v
 }
 
+func (v *field) CResolve(h gql.ResolveHandler) gql.Field {
+	v.resolve = func(r gql.Resolver) (interface{}, error) {
+		ch := make(chan *gql.ConcurrentResult, 1)
+		go func() {
+			defer close(ch)
+			data, err := h(r)
+			// graphql.Do will finish immediately in the case fn returns an error. Therefore,
+			// when using goroutines make sure to utilize a done channel to avoid leaking goroutines.
+			select {
+			case ch <- &gql.ConcurrentResult{Data: data, Err: err}:
+			case <-r.Context().Done():
+			}
+		}()
+		return func() (interface{}, error) {
+			select {
+			case o := <-ch:
+				return o.Data, o.Err
+			case <-r.Context().Done():
+				return nil, nil
+			}
+		}, nil
+	}
+	return v
+}
+
 func (v *field) Init(fn gql.FieldInitializer) gql.Field {
 	if !v.initialized {
 		v.initialized = true

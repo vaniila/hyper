@@ -32,6 +32,12 @@ type ScalarParseValueHandler func(interface{}) (interface{}, error)
 // ScalarParseLiteralHandler for scalar parse literal resolver
 type ScalarParseLiteralHandler func(ast.Value) (interface{}, error)
 
+// ConcurrentResult type
+type ConcurrentResult struct {
+	Data interface{}
+	Err  error
+}
+
 // Schema for GraphQL
 type Schema interface {
 	Query(Object) Schema
@@ -140,6 +146,7 @@ type Field interface {
 	Type(interface{}) Field
 	Args(...Argument) Field
 	Resolve(ResolveHandler) Field
+	CResolve(ResolveHandler) Field
 	Init(FieldInitializer) Field
 	Config() FieldConfig
 }
