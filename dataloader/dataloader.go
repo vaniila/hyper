@@ -5,6 +5,15 @@ import (
 	"sync"
 )
 
+// ConcurrentFn type
+type ConcurrentFn func() (interface{}, error)
+
+// ConcurrentResult type
+type ConcurrentResult struct {
+	data interface{}
+	err  error
+}
+
 // Batch type
 type Batch interface {
 	Handle(context.Context, []interface{}) []Result
@@ -89,4 +98,27 @@ func ForEach(keys []interface{}, fn Each) []Result {
 
 	wg.Wait()
 	return res
+}
+
+// Concurrent helper
+func Concurrent(ctx context.Context, fn ConcurrentFn) (interface{}, error) {
+	ch := make(chan *ConcurrentResult, 1)
+	go func() {
+		defer close(ch)
+		data, err := fn()
+		// graphql.Do will finish immediately in the case fn returns an error. Therefore,
+		// when using goroutines make sure to utilize a done channel to avoid leaking goroutines.
+		select {
+		case ch <- &ConcurrentResult{data: data, err: err}:
+		case <-ctx.Done():
+		}
+	}()
+	return func() (interface{}, error) {
+		select {
+		case r := <-ch:
+			return r.data, r.err
+		case <-ctx.Done():
+			return nil, nil
+		}
+	}, nil
 }
