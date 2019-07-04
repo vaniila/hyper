@@ -150,6 +150,40 @@ func (l *Loader) Load(ctx context.Context, key interface{}) (interface{}, error)
 	return thunk()
 }
 
+// LoadOne loads the given key, doing one request instead of batch, and returns a thunk that resolves the key.
+func (l *Loader) LoadOne(ctx context.Context, key interface{}) (interface{}, error) {
+	c := make(chan Result, 1)
+	// set batch capacity to 1
+	l.batchCap = 1
+
+	data, err := l.Load(ctx, key)
+	c <- &Return{data, err}
+
+	var result struct {
+		mu    sync.RWMutex
+		value Result
+	}
+
+	thunk := func() (interface{}, error) {
+		result.mu.RLock()
+		resultNotSet := result.value == nil
+		result.mu.RUnlock()
+
+		if resultNotSet {
+			result.mu.Lock()
+			if v, ok := <-c; ok {
+				result.value = v
+			}
+			result.mu.Unlock()
+		}
+		result.mu.RLock()
+		defer result.mu.RUnlock()
+		return result.value.Data(), result.value.Error()
+	}
+
+	return thunk()
+}
+
 // LoadMany loads mulitiple keys, returning a thunk (type: ThunkMany) that will resolve the keys passed in.
 func (l *Loader) LoadMany(ctx context.Context, keys []interface{}) ([]interface{}, []error) {
 	length := len(keys)

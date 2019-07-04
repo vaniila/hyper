@@ -123,6 +123,7 @@ type GQLSubscriptionAdaptor interface {
 // DataLoaderAdaptor interface
 type DataLoaderAdaptor interface {
 	Load(context.Context, interface{}) (interface{}, error)
+	LoadOne(context.Context, interface{}) (interface{}, error)
 	LoadMany(context.Context, []interface{}) ([]interface{}, []error)
 	Clear(interface{})
 	ClearAll()
