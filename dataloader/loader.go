@@ -150,6 +150,13 @@ func (l *Loader) Load(ctx context.Context, key interface{}) (interface{}, error)
 	return thunk()
 }
 
+// LoadOne loads the given key, doing one request instead of batch, and returns a thunk that resolves the key.
+func (l *Loader) LoadOne(ctx context.Context, key interface{}) (interface{}, error) {
+	// set batch capacity to 1
+	l.batchCap = 1
+	return l.Load(ctx, key)
+}
+
 // LoadMany loads mulitiple keys, returning a thunk (type: ThunkMany) that will resolve the keys passed in.
 func (l *Loader) LoadMany(ctx context.Context, keys []interface{}) ([]interface{}, []error) {
 	length := len(keys)

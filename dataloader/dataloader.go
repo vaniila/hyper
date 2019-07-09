@@ -28,6 +28,7 @@ type DataLoaders interface {
 // DataLoader interface
 type DataLoader interface {
 	Load(context.Context, interface{}) (interface{}, error)
+	LoadOne(context.Context, interface{}) (interface{}, error)
 	LoadMany(context.Context, []interface{}) ([]interface{}, []error)
 	Clear(interface{})
 	ClearAll()
